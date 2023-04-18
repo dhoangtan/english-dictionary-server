@@ -33,4 +33,4 @@ build/
 .vscode/
 
 ### Private File ###
-./src/main/**/service_account.json
+!**/src/main/**/service_account.json
