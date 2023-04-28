@@ -1,4 +1,3 @@
-HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -33,4 +32,4 @@ build/
 .vscode/
 
 ### Private File ###
-**/src/main/**/service_account.json
+**/src/main/**/service_account_key.json

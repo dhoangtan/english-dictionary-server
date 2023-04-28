@@ -9,8 +9,8 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>englishdictionary</groupId>
-    <artifactId>Server</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <artifactId>app-server</artifactId>
+    <version>0.0.1</version>
     <name>EnglishDictionaryServer</name>
     <description>EnglishDictionaryServer</description>
     <properties>
@@ -41,6 +41,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>9.1.1</version>
         </dependency>
     </dependencies>
 
