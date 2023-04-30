@@ -1,0 +1,12 @@
+package englishdictionary.server.models;
+
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class WordList {
+    private String name;
+    private String userId;
+    private List<Word> words;
+}
