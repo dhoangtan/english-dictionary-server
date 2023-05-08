@@ -12,7 +12,6 @@ Run docker container
 ```shell
 docker run -d -p 4040:8080 server:lastest
 ```
-<<<<<<< HEAD
 ___
 Alternitive for running docker image
 ```shell
@@ -22,7 +21,4 @@ Detach mode
 ```shell
 docker-compose up -d 
 ```
-=======
 
-
->>>>>>> e5b141f0ea9424110bc43f04da13025599cbc9fa
