@@ -1,5 +1,6 @@
 package englishdictionary.server.gateways;
 
+import englishdictionary.server.models.Word;
 import englishdictionary.server.models.WordList;
 import englishdictionary.server.services.WordListService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,41 +12,34 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @RestController
-@RequestMapping("api/word_list/")
+@RequestMapping("api/wordlists")
 public class WordListController {
     @Autowired
     private WordListService wordListService;
 
-    @GetMapping("/{user_id}")
-    public List<WordList> getAllUserWordLists(@PathVariable("user_id") String userId) {
-        try {
-            return wordListService.getAllUserWordLists(userId);
-        } catch (ExecutionException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND
-            );
-        } catch (InterruptedException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND
-            );
-        }
-    }
-
-    @GetMapping("/default")
-    public List<WordList> getAllSystemWordLists() {
-        try {
-            return wordListService.getSystemWordLists();
-        } catch (ExecutionException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND
-            );
-        } catch (InterruptedException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND
-            );
-        }
+    @GetMapping("/{user-id}/{wordlist-id}")
+    public List<WordList> getAllUserWordLists(
+            @PathVariable("user-id") String userId,
+            @PathVariable("wordlist-id") String wordlistId) {
+        //TODO
+        return null;
     }
 
 
+    @GetMapping("/default/{wordlist-id}")
+    public List<WordList> getAllSystemWordLists(
+            @PathVariable("wordlist-id") String wordlistId
+    ) {
+        //TODO
+        return null;
+    }
 
+    @GetMapping("/{wordlist-id}/word/{word-id}")
+    public Word getWordInWordlist(
+            @PathVariable("wordlist-id") String wordlistId,
+            @PathVariable("word-id") String wordId
+    ) {
+        //TODO
+        return null;
+    }
 }
