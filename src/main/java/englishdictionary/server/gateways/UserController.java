@@ -14,7 +14,7 @@ public class UserController {
     public UserServices userServices;
     public UserController(UserServices userServices) {this.userServices = userServices;}
     @GetMapping("/{id}")
-    public User getCRUD(@PathVariable String id) throws InterruptedException{
+    public User getUser(@PathVariable String id) throws InterruptedException{
         try{
             return userServices.getUser(id);
 
