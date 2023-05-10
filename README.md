@@ -22,7 +22,6 @@ Step two: build the docker image with-out any cache (explain later)
 ```shell
 docker-compose build --no-cache 
 ```
-<<<<<<< HEAD
 Step three: run the docker image
 ```shell
 docker-compose up
