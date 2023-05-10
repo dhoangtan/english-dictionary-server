@@ -12,7 +12,6 @@ Run docker container
 ```shell
 docker run -d -p 4040:8080 server:lastest
 ```
-<<<<<<< HEAD
 ___
 Docker Composing Step
 Step one: Remove all image and volumes in of the projects 
@@ -23,12 +22,13 @@ Step two: build the docker image with-out any cache (explain later)
 ```shell
 docker-compose build --no-cache 
 ```
+<<<<<<< HEAD
 Step three: run the docker image
 ```shell
 docker-compose up
 ```
 Return to Step One
 =======
+=======
+>>>>>>> a6fde2abc57cef1f8d71cfb34a541eb16598c510
 
-
->>>>>>> e5b141f0ea9424110bc43f04da13025599cbc9fa
