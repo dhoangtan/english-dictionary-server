@@ -14,14 +14,20 @@ docker run -d -p 4040:8080 server:lastest
 ```
 <<<<<<< HEAD
 ___
-Alternitive for running docker image
+Docker Composing Step
+Step one: Remove all image and volumes in of the projects 
 ```shell
-docker-compose up 
+docker-compose down --rmi all -- volumes
 ```
-Detach mode
+Step two: build the docker image with-out any cache (explain later)
 ```shell
-docker-compose up -d 
+docker-compose build --no-cache 
 ```
+Step three: run the docker image
+```shell
+docker-compose up
+```
+Return to Step One
 =======
 
 

@@ -1,8 +1,11 @@
 package englishdictionary.server.models;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class User {
     private String email;
     private String full_Name;

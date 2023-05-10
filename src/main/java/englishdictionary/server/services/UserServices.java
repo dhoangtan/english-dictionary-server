@@ -6,15 +6,14 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
 import englishdictionary.server.models.User;
-import org.apache.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
-import java.net.http.HttpResponse;
 import java.util.concurrent.ExecutionException;
 
 @Service
 public class UserServices {
-    public User getUser(String id) throws ExecutionException, InterruptedException {
+    public User getUser(@PathVariable("id") String id) throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbFirestore.collection("users").document(id);
         ApiFuture<DocumentSnapshot> future = documentReference.get();
