@@ -28,6 +28,4 @@ docker-compose up
 ```
 Return to Step One
 =======
-=======
->>>>>>> a6fde2abc57cef1f8d71cfb34a541eb16598c510
 

@@ -2,20 +2,19 @@ package englishdictionary.server.gateways;
 
 import englishdictionary.server.models.Word;
 import englishdictionary.server.models.WordList;
-import englishdictionary.server.services.WordListService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import englishdictionary.server.services.WordlistService;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("api/wordlists")
 public class WordListController {
-    @Autowired
-    private WordListService wordListService;
+    private final WordlistService wordlistService;
+
+    public WordListController(WordlistService wordlistService) {
+        this.wordlistService = wordlistService;
+    }
 
     @GetMapping("/{user-id}/{wordlist-id}")
     public List<WordList> getAllUserWordLists(

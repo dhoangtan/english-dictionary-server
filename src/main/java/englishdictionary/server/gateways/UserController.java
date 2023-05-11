@@ -1,7 +1,8 @@
 package englishdictionary.server.gateways;
 
 import englishdictionary.server.models.User;
-import englishdictionary.server.services.UserServices;
+import englishdictionary.server.services.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -11,8 +12,13 @@ import java.util.concurrent.ExecutionException;
 @RestController
 @RequestMapping("api/user/")
 public class UserController {
-    public UserServices userServices;
-    public UserController(UserServices userServices) {this.userServices = userServices;}
+
+    private final UserService userServices;
+
+    public UserController(UserService userServices) {
+        this.userServices = userServices;
+    }
+
     @GetMapping("/{id}")
     public User getUser(@PathVariable("id") String id) throws InterruptedException{
         try{
@@ -22,8 +28,8 @@ public class UserController {
             throw new ResponseStatusException( HttpStatusCode.valueOf(404));
         }
     }
-    @GetMapping("/hello")
+    @GetMapping("/test")
     public String test(){
-        return ("you are in");
+        return ("test user endpoint");
     }
 }

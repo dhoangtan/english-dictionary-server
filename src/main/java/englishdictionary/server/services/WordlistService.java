@@ -4,7 +4,6 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import englishdictionary.server.models.WordList;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -12,7 +11,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Service
-public class WordListService {
+public class WordlistService {
     private Firestore firestore;
 
     public List<WordList> getAllUserWordLists(String userId) throws ExecutionException, InterruptedException {
