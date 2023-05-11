@@ -12,10 +12,8 @@ import java.util.concurrent.ExecutionException;
 
 @Service
 public class WordlistService {
-    private Firestore firestore;
-
     public List<WordList> getAllUserWordLists(String userId) throws ExecutionException, InterruptedException {
-        firestore = FirestoreClient.getFirestore();
+        Firestore firestore = FirestoreClient.getFirestore();
         ApiFuture<QuerySnapshot> future = firestore.collection("word_lists").whereEqualTo("user_id", userId).get();
         List<QueryDocumentSnapshot> documents = future.get().getDocuments();
         List<WordList> wordLists = new ArrayList<>();
@@ -25,7 +23,7 @@ public class WordlistService {
     }
 
     public List<WordList> getAllSystemWordLists() throws ExecutionException, InterruptedException {
-        firestore = FirestoreClient.getFirestore();
+        Firestore firestore = FirestoreClient.getFirestore();
         ApiFuture<QuerySnapshot> future = firestore.collection("word_lists").whereEqualTo("user_id", "system").get();
         List<QueryDocumentSnapshot> documents = future.get().getDocuments();
         List<WordList> wordLists = new ArrayList<>();
@@ -35,7 +33,7 @@ public class WordlistService {
     }
 
     public WordList getWordListById(String wordListId) throws ExecutionException, InterruptedException {
-        firestore = FirestoreClient.getFirestore();
+        Firestore firestore = FirestoreClient.getFirestore();
         DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordListId).get().get();
         return documentSnapshot.toObject(WordList.class);
     }

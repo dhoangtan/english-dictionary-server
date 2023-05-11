@@ -3,12 +3,16 @@ package englishdictionary.server.gateways;
 import englishdictionary.server.models.User;
 import englishdictionary.server.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.concurrent.ExecutionException;
-
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.UserRecord;
 @RestController
 @RequestMapping("api/user/")
 public class UserController {
@@ -57,4 +61,14 @@ public class UserController {
     public Long getUserOccupation(@PathVariable("id") String id) throws ExecutionException, InterruptedException {
         return userServices.getUserOccupation(id);
     }
+    @PostMapping("/")
+    public ResponseEntity<String> createUser(@RequestBody User user) {
+        try {
+            String uid = userServices.createUser(user);
+            return ResponseEntity.ok().body("User created successfully: " + uid);
+        } catch (FirebaseAuthException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating user: " + e.getMessage());
+        }
+    }
+
 }

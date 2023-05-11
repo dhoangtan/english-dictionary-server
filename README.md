@@ -16,7 +16,7 @@ ___
 Docker Composing Step
 Step one: Remove all image and volumes in of the projects 
 ```shell
-docker-compose down --rmi all -- volumes
+docker-compose down --rmi all --volumes
 ```
 Step two: build the docker image with-out any cache (explain later)
 ```shell

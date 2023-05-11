@@ -4,6 +4,10 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.WriteResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
 import englishdictionary.server.models.User;
 import org.springframework.stereotype.Service;
@@ -75,5 +79,14 @@ public class UserService {
             return document.getLong("occupation");
         }
         return null;
+    }
+    public String createUser(User user) throws FirebaseAuthException {
+        UserRecord.CreateRequest request = new UserRecord.CreateRequest()
+                .setEmail(user.getEmail())
+                .setPassword(user.getPassword())
+                // Set other user properties as necessary
+                .setDisabled(false);
+        UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
+        return userRecord.getUid();
     }
 }
