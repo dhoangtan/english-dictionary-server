@@ -9,7 +9,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
+import com.google.firebase.remoteconfig.internal.TemplateResponse;
 import englishdictionary.server.models.User;
+import englishdictionary.server.models.UserAuth;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ExecutionException;
@@ -80,13 +82,22 @@ public class UserService {
         }
         return null;
     }
-    public String createUser(User user) throws FirebaseAuthException {
+    public String createUser(User user, String password) throws FirebaseAuthException, ExecutionException, InterruptedException {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
         UserRecord.CreateRequest request = new UserRecord.CreateRequest()
                 .setEmail(user.getEmail())
-                .setPassword(user.getPassword())
-                // Set other user properties as necessary
+                .setPassword(password)
                 .setDisabled(false);
         UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
+        ApiFuture<WriteResult> result = dbFirestore.collection("users").document(userRecord.getUid()).set(user);
+        result.get();
+        return userRecord.getUid();
+    }
+    public String updateUser (UserAuth userAuth, String id) throws FirebaseAuthException, ExecutionException, InterruptedException {
+        UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(id)
+                .setEmail(userAuth.getEmail())
+                .setPassword(userAuth.getPassword());
+        UserRecord userRecord = FirebaseAuth.getInstance().updateUser(request);
         return userRecord.getUid();
     }
 }

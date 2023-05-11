@@ -12,5 +12,4 @@ public class User {
     private Integer gender;
     private Integer level;
     private Integer occupation;
-    private String password;
 }
