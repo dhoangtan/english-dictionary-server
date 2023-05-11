@@ -5,8 +5,8 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class WordList {
+public class Wordlist {
     private String name;
-    private String userId;
+    private User user;
     private List<Word> words;
 }
