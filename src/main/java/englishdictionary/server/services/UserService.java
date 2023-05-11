@@ -25,4 +25,55 @@ public class UserService {
         }
         return null;
     }
+
+    public String getUserEmail(String id) throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("users").document(id);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        if(document.exists()){
+            return document.getString("email");
+        }
+        return null;
+    }
+    public String getUserFullname(String id) throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("users").document(id);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        if(document.exists()){
+            return document.getString("full_name");
+        }
+        return null;
+    }
+    public Long getUserGender(String id) throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("users").document(id);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        if(document.exists()){
+            return document.getLong("gender");
+        }
+        return null;
+    }
+    public Long getUserLevel(String id) throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("users").document(id);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        if(document.exists()){
+            return document.getLong("level");
+        }
+        return null;
+    }
+    public Long getUserOccupation(String id) throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("users").document(id);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        if(document.exists()){
+            return document.getLong("occupation");
+        }
+        return null;
+    }
 }
