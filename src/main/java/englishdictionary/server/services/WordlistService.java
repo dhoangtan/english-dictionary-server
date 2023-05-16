@@ -20,18 +20,14 @@ public class WordlistService {
         ApiFuture<QuerySnapshot> future = firestore.collection("word_lists").whereEqualTo("user_id", userId).get();
         List<QueryDocumentSnapshot> documents = future.get().getDocuments();
         List<Wordlist> wordlists = new ArrayList<>();
-        for (DocumentSnapshot document : documents)
-            wordlists.add(document.toObject(Wordlist.class));
-        return wordlists;
-    }
-
-    public List<Wordlist> getAllSystemWordLists() throws ExecutionException, InterruptedException {
-        firestore = FirestoreClient.getFirestore();
-        ApiFuture<QuerySnapshot> future = firestore.collection("word_lists").whereEqualTo("user_id", "system").get();
-        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-        List<Wordlist> wordlists = new ArrayList<>();
-        for (DocumentSnapshot document : documents)
-            wordlists.add(document.toObject(Wordlist.class));
+        for (DocumentSnapshot document : documents) {
+            Wordlist wordlist = document.toObject(Wordlist.class);
+            wordlist.setWordlistId(document.getId());
+            // NOTE: somehow userId cannot be parsed
+            //      manually set userId is required.
+            wordlist.setUserId(document.get("user_id").toString());
+            wordlists.add(wordlist);
+        }
         return wordlists;
     }
 
@@ -47,15 +43,56 @@ public class WordlistService {
 
         Wordlist wordlist = new Wordlist();
         wordlist.setName(wordlistName);
-        wordlist.setUser(documentSnapshot.toObject(User.class));
+        wordlist.setUserId(userId);
         wordlist.setWords(new ArrayList<>());
 
         Map<String, Object> docData = new HashMap<>();
         docData.put("name", wordlist.getName());
-        docData.put("user", wordlist.getUser());
+        docData.put("user", wordlist.getUserId());
         docData.put("words", wordlist.getWords());
 
         firestore.collection("word_lists").document().set(docData);
         return wordlist;
     }
+
+    public Word getWordlistWord(String wordlistId, Integer wordId) throws ExecutionException, InterruptedException{
+        firestore = FirestoreClient.getFirestore();
+        DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordlistId).get().get();
+
+        Wordlist wordlist = documentSnapshot.toObject(Wordlist.class);
+        if (wordlist == null)
+            return null;
+        return wordlist.getWords().stream().filter(w -> Objects.equals(w.getId(), wordId)).findFirst().orElse(null);
+    }
+
+    public List<Wordlist> searchForWordlist(String name, String word) throws ExecutionException, InterruptedException{
+        firestore = FirestoreClient.getFirestore();
+        ApiFuture<QuerySnapshot> query = firestore.collection("word_lists").get();
+        List<QueryDocumentSnapshot> documentSnapshots = query.get().getDocuments();
+        List<Wordlist> wordlists = new ArrayList<>();
+
+        for (DocumentSnapshot document : documentSnapshots) {
+            Wordlist wordlist = document.toObject(Wordlist.class);
+            wordlist.setWordlistId(document.getId());
+            // NOTE: somehow userId cannot be parsed
+            //      manually set userId is required.
+            wordlist.setUserId(document.get("user_id").toString());
+
+            if (
+                    wordlist.getName().toLowerCase().contains(name.toLowerCase()) &&
+                    wordlist.getWords().stream().filter(w -> w.getWord().toLowerCase().contains(word.toLowerCase())).findFirst().orElse(null) != null
+            ) {
+                wordlists.add(wordlist);
+            }
+        }
+        return wordlists;
+    }
+
+    public boolean deleteWordlist(String id) {
+        firestore = FirestoreClient.getFirestore();
+        ApiFuture<WriteResult> writeResult = firestore.collection("word_lists").document(id).delete();
+        return true;
+    }
+
+
 }

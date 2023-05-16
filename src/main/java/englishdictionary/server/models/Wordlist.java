@@ -6,7 +6,8 @@ import java.util.List;
 
 @Data
 public class Wordlist {
+    private String wordlistId;
     private String name;
-    private User user;
+    private String userId;
     private List<Word> words;
 }

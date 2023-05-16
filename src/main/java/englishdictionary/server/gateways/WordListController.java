@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -20,47 +21,74 @@ public class WordListController {
     @Autowired
     private WordlistService wordlistService;
 
-    @GetMapping("/{user-id}/{wordlist-id}")
-    public List<Wordlist> getAllUserWordLists(
-            @PathVariable("user-id") String userId,
-            @PathVariable("wordlist-id") String wordlistId) {
-        //TODO
-        return null;
+    @GetMapping("/{user-id}")
+    public List<Wordlist> getAllUserWordLists(@PathVariable("user-id") String userId) {
+        try {
+            return wordlistService.getAllUserWordLists(userId);
+        } catch (ExecutionException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } catch (InterruptedException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
     }
 
+    @GetMapping("/{user-id}/{wordlist-id}")
+    public Wordlist getUserWordlist(@PathVariable("user-id") String userId, @PathVariable("wordlist-id") String wordlistId) {
+        try {
+            return wordlistService.getWordListById(wordlistId);
+        } catch (ExecutionException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } catch (InterruptedException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+    }
 
-    @GetMapping("/default/{wordlist-id}")
-    public List<Wordlist> getAllSystemWordLists(
-            @PathVariable("wordlist-id") String wordlistId
-    ) {
-        //TODO
-        return null;
+    @GetMapping("/search")
+    public List<Wordlist> searchForWordList(@RequestParam(name = "name") String name, @RequestParam(name = "word") String word) {
+        try {
+            return wordlistService.searchForWordlist(name, word);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @GetMapping(value = "/{wordlist-id}/word/{word-id}")
     public Word getWordInWordlist(
             @PathVariable("wordlist-id") String wordlistId,
-            @PathVariable("word-id") String wordId
+            @PathVariable("word-id") Integer wordId
     ) {
-        //TODO
-        return null;
+        try {
+            Word word = wordlistService.getWordlistWord(wordlistId, wordId);
+            if (word == null)
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            return word;
+        } catch (ExecutionException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } catch (InterruptedException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
     }
 
     @PostMapping(value = "/user", consumes = {
             "application/*"
     })
     public HttpStatus createWordlist(@RequestBody CreateWordListDto wordListDto) {
-        Logger logger = LoggerFactory.getLogger(WordListController.class);
         try {
-            logger.info("Hello");
             wordlistService.createWordlist(wordListDto.getName(),wordListDto.getUserId());
-            return HttpStatus.CREATED;
         } catch (ExecutionException e) {
-            logger.warn(e.getMessage());
-            return HttpStatus.METHOD_NOT_ALLOWED;
+            throw new RuntimeException(e);
         } catch (InterruptedException e) {
-            logger.warn(e.getMessage());
-            return HttpStatus.NOT_ACCEPTABLE;
+            throw new RuntimeException(e);
         }
+        return HttpStatus.CREATED;
+    }
+
+    @DeleteMapping("/{id}")
+    public HttpStatus deleteWordlist(@PathVariable("id") String id) {
+        if (wordlistService.deleteWordlist(id))
+            return HttpStatus.ACCEPTED;
+        return HttpStatus.NOT_FOUND;
     }
 }
