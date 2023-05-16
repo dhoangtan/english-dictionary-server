@@ -1,5 +1,6 @@
 package englishdictionary.server.gateways;
 
+import englishdictionary.server.dtos.AddWordDto;
 import englishdictionary.server.dtos.CreateWordListDto;
 import englishdictionary.server.dtos.RenameWordListDto;
 import englishdictionary.server.models.Word;
@@ -109,6 +110,19 @@ public class WordListController {
         try {
             if (wordlistService.renameWordList(dto.getId(), dto.getName()))
                 return HttpStatus.ACCEPTED;
+            return HttpStatus.NOT_ACCEPTABLE;
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PostMapping("/word")
+    public HttpStatus addWordToWordList(@RequestBody AddWordDto dto) {
+        try {
+            if (wordlistService.addWordToWordlist(dto.getWordlistId(), dto.getWord()))
+                return HttpStatus.CREATED;
             return HttpStatus.NOT_ACCEPTABLE;
         } catch (ExecutionException e) {
             throw new RuntimeException(e);

@@ -118,7 +118,34 @@ public class WordlistService {
         DocumentReference documentReference = firestore.collection("word_lists").document(id);
         documentReference.update("name", name);
         return true;
+    }
 
+    public boolean addWordToWordlist(String wordlistId, Word word) throws ExecutionException, InterruptedException{
+        firestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = firestore.collection("word_lists").document(wordlistId);
+        DocumentSnapshot document = documentReference.get().get();
+
+        Wordlist wordlist = document.toObject(Wordlist.class);
+        wordlist.setWordlistId(document.getId());
+        // NOTE: somehow userId cannot be parsed
+        //      manually set userId is required.
+        wordlist.setUserId(document.get("user_id").toString());
+
+        // prevent adding the same word multiple times
+        if (wordlist.getWords()
+                .stream()
+                .anyMatch(w ->
+                        (w.getWord().equals(word.getWord()) && w.getDefinition().equals(word.getDefinition()))
+                )
+        )
+            return false;
+
+        word.setId(wordlist.getWords().get(wordlist.getWords().size() - 1).getId()+1);
+        wordlist.getWords().add(word);
+
+        documentReference.update(wordlist.toHashMap());
+
+        return true;
     }
 
 }
