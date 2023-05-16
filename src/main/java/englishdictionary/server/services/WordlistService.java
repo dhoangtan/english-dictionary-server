@@ -3,11 +3,11 @@ package englishdictionary.server.services;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
-import englishdictionary.server.models.User;
 import englishdictionary.server.models.Word;
 import englishdictionary.server.models.Wordlist;
 import org.springframework.stereotype.Service;
 
+import javax.print.Doc;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -31,7 +31,7 @@ public class WordlistService {
         return wordlists;
     }
 
-    public Wordlist getWordListById(String wordListId) throws ExecutionException, InterruptedException {
+    public Wordlist getWordlistById(String wordListId) throws ExecutionException, InterruptedException {
         firestore = FirestoreClient.getFirestore();
         DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordListId).get().get();
         return documentSnapshot.toObject(Wordlist.class);
@@ -94,5 +94,31 @@ public class WordlistService {
         return true;
     }
 
+    public boolean removeWordlistWord(String wordlistId, Integer wordId) throws ExecutionException, InterruptedException {
+        firestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = firestore.collection("word_lists").document(wordlistId);
+        DocumentSnapshot document = documentReference.get().get();
+
+        Wordlist wordlist = document.toObject(Wordlist.class);
+        wordlist.setWordlistId(document.getId());
+        // NOTE: somehow userId cannot be parsed
+        //      manually set userId is required.
+        wordlist.setUserId(document.get("user_id").toString());
+
+        wordlist.getWords().removeIf(word -> word.getId().equals(wordId));
+
+        Map<String, Object> map = wordlist.toHashMap();
+        documentReference.update(map);
+
+        return true;
+    }
+
+    public boolean renameWordList(String id, String name) throws ExecutionException, InterruptedException {
+        firestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = firestore.collection("word_lists").document(id);
+        documentReference.update("name", name);
+        return true;
+
+    }
 
 }
