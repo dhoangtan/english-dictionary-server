@@ -93,11 +93,18 @@ public class UserService {
         result.get();
         return userRecord.getUid();
     }
-    public String updateUser (UserAuth userAuth, String id) throws FirebaseAuthException, ExecutionException, InterruptedException {
+    public String updateUserInfo (UserAuth userAuth, String id) throws FirebaseAuthException, ExecutionException, InterruptedException {
         UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(id)
                 .setEmail(userAuth.getEmail())
                 .setPassword(userAuth.getPassword());
         UserRecord userRecord = FirebaseAuth.getInstance().updateUser(request);
         return userRecord.getUid();
+    }
+
+    public Boolean updateUserProfile (User user, String id ) throws ExecutionException, InterruptedException {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        ApiFuture<WriteResult> collection = dbFirestore.collection("users").document(id).set(user);
+        collection.get();
+        return true;
     }
 }

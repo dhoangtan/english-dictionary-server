@@ -72,8 +72,18 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Integer> updateUser(@RequestBody UserAuth userAuth, @PathVariable("id") String id) throws FirebaseAuthException, ExecutionException, InterruptedException {
-        if(userServices.updateUser(userAuth, id) != null){
+    public ResponseEntity<Integer> updateUserInfo(@RequestBody UserAuth userAuth, @PathVariable("id") String id) throws FirebaseAuthException, ExecutionException, InterruptedException {
+        if(userServices.updateUserInfo(userAuth, id) != null){
+            return ResponseEntity.ok().build();
+        }
+        else{
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PutMapping ("/profile/{id}")
+    public ResponseEntity<Integer> updateUserProfile(@RequestBody User user, @PathVariable("id") String id) throws ExecutionException, InterruptedException {
+        if(userServices.updateUserProfile(user, id)){
             return ResponseEntity.ok().build();
         }
         else{
