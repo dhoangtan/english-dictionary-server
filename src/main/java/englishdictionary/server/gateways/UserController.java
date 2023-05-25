@@ -60,7 +60,12 @@ public class UserController {
         return userServices.getUserOccupation(id);
     }
     @PostMapping("/")
-    public ResponseEntity<String> createUser(@RequestBody User user,@RequestBody String password) {
+    public ResponseEntity<String> Login(@RequestBody UserAuth userAuth) throws FirebaseAuthException {
+        return ResponseEntity.ok().body( userServices.getUserId(userAuth));
+    }
+
+    @PostMapping("/new")
+    public ResponseEntity<String> createUser(@RequestBody User user, @RequestParam String password) {
         try {
             String uid = userServices.createUser(user, password);
             return ResponseEntity.ok().body("User created successfully: " + uid);
