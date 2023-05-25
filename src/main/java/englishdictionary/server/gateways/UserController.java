@@ -25,7 +25,6 @@ public class UserController {
     public User getUser(@PathVariable("id") String id) throws InterruptedException{
         try{
             return userServices.getUser(id);
-
         } catch (ExecutionException e){
             throw new ResponseStatusException( HttpStatusCode.valueOf(404));
         }
