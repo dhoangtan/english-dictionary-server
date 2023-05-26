@@ -60,14 +60,26 @@ public class UserController {
         return userServices.getUserOccupation(id);
     }
     @PostMapping("/")
-    public ResponseEntity<String> Login(@RequestBody UserAuth userAuth) throws FirebaseAuthException {
-        return ResponseEntity.ok().body( userServices.getUserId(userAuth));
+    public ResponseEntity<String> login(@RequestBody UserAuth userAuth) {
+        try {
+            String uid = userServices.getUserId(userAuth);
+            if (uid != null) {
+                // User authenticated successfully
+                return ResponseEntity.ok("{\"uid\": \"" + uid + "\"}");
+            } else {
+                // Authentication failed
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
+            }
+        } catch (Exception e) {
+            // Handle any exceptions
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
+        }
     }
 
     @PostMapping("/new")
-    public ResponseEntity<String> createUser(@RequestBody User user, @RequestParam String password) {
+    public ResponseEntity<String> createUser(@RequestBody User user) {
         try {
-            String uid = userServices.createUser(user, password);
+            String uid = userServices.createUser(user);
             return ResponseEntity.ok().body("User created successfully: " + uid);
         } catch (FirebaseAuthException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating user: " + e.getMessage());

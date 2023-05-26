@@ -14,6 +14,10 @@ import com.google.cloud.firestore.Query;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -31,10 +35,19 @@ public class UserService {
         }
         return null;
     }
-    public String getUserId(UserAuth userAuth) throws FirebaseAuthException {
+    public String getUserId(UserAuth userAuth) throws FirebaseAuthException, ExecutionException, InterruptedException {
         UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(userAuth.getEmail());
         String uid = userRecord.getUid();
-        return uid;
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("users").document(uid);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        String storedPass = document.getString("password");
+        String hashedPass = hashPassword(userAuth.getPassword());
+        if (MessageDigest.isEqual(storedPass.getBytes(StandardCharsets.UTF_8), hashedPass.getBytes(StandardCharsets.UTF_8))) {
+            return uid;
+        }
+        return null;
     }
     public String getUserEmail(String id) throws ExecutionException, InterruptedException {
         Firestore dbfirestore = FirestoreClient.getFirestore();
@@ -86,19 +99,30 @@ public class UserService {
         }
         return null;
     }
-    public String createUser(User user, String password) throws FirebaseAuthException, ExecutionException, InterruptedException {
+    public String createUser(User user) throws FirebaseAuthException, ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
+        String hashedPassword = hashPassword(user.getPassword());
         UserRecord.CreateRequest request = new UserRecord.CreateRequest()
                 .setEmail(user.getEmail())
-                .setPassword(password)
+                .setPassword(user.getPassword())
                 .setDisabled(false);
         UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
         String uid = userRecord.getUid();
+        user.setPassword(hashedPassword);
         DocumentReference userDocRef = dbFirestore.collection("users").document(uid);
         ApiFuture<WriteResult> writeResult = userDocRef.set(user);
         writeResult.get();
 
         return uid;
+    }
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] encodedHash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(encodedHash);
+        } catch (NoSuchAlgorithmException e) {
+            return null;
+        }
     }
     public String updateUserInfo (UserAuth userAuth, String id) throws FirebaseAuthException, ExecutionException, InterruptedException {
         UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(id)
