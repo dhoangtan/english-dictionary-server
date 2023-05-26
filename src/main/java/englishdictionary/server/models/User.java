@@ -1,5 +1,6 @@
 package englishdictionary.server.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,5 +13,6 @@ public class User {
     private Integer gender;
     private Integer level;
     private Integer occupation;
+    @JsonIgnore
     private String password;
 }
