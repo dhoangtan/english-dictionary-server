@@ -140,7 +140,10 @@ public class WordlistService {
         )
             return false;
 
-        word.setId(wordlist.getWords().size());
+        if (wordlist.getWords().size() == 0)
+            word.setId(1);
+        else
+            word.setId(wordlist.getWords().get(wordlist.getWords().size() - 1).getId()+1);
         wordlist.getWords().add(word);
 
         documentReference.update(wordlist.toHashMap());
