@@ -64,7 +64,7 @@ public class UserController {
             String uid = userServices.getUserId(userAuth);
             if (uid != null) {
                 // User authenticated successfully
-                return ResponseEntity.ok("{\"uid\": \"" + uid + "\"}");
+                return ResponseEntity.ok(uid);
             } else {
                 // Authentication failed
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
