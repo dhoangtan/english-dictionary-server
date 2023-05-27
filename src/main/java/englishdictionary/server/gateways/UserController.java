@@ -63,14 +63,11 @@ public class UserController {
         try {
             String uid = userServices.getUserId(userAuth);
             if (uid != null) {
-                // User authenticated successfully
                 return ResponseEntity.ok(uid);
             } else {
-                // Authentication failed
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
             }
         } catch (Exception e) {
-            // Handle any exceptions
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
         }
     }
