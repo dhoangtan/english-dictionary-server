@@ -13,6 +13,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
+import englishdictionary.server.EnglishDictionaryServerApplication;
 import englishdictionary.server.models.User;
 import englishdictionary.server.models.UserAuth;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import com.google.cloud.firestore.QuerySnapshot;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -30,17 +32,20 @@ import java.util.concurrent.ExecutionException;
 
 @Service
 public class UserService {
-    @Value("${firebase.storage.bucket}")
-    private String bucketName;
+//    @Value("${firebase.storage.bucket}")
+//    private String bucketName;
+
 
     public Boolean uploadFile(MultipartFile file) {
         try {
+            String bucketName = "englishdictionary-8237a.appspot.com";
+            InputStream serviceAccount = EnglishDictionaryServerApplication.class.getResourceAsStream("/service_account_key.json");
             String filename = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
             Path tempFile = Files.createTempFile("temp-", filename);
             Files.copy(file.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
 
             StorageOptions options = StorageOptions.newBuilder()
-                    .setCredentials(GoogleCredentials.getApplicationDefault())
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .build();
             Storage storage = options.getService();
             BlobId blobId = BlobId.of(bucketName, filename);
