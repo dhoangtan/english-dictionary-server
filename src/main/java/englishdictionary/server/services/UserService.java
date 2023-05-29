@@ -13,6 +13,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
 import englishdictionary.server.EnglishDictionaryServerApplication;
+import englishdictionary.server.dtos.UserUploadAvatarDto;
 import englishdictionary.server.models.User;
 import englishdictionary.server.models.UserAuth;
 import org.springframework.stereotype.Service;
@@ -40,12 +41,12 @@ public class UserService {
                 .map(f -> f.substring(filename.lastIndexOf(".") + 1));
     }
 
-    public Boolean uploadFile(MultipartFile file, String userId) {
+    public Boolean uploadFile(MultipartFile file) {
         try {
             String bucketName = "englishdictionary-8237a.appspot.com";
             InputStream serviceAccount = EnglishDictionaryServerApplication.class.getResourceAsStream("/service_account_key.json");
 //            String filename = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
-            String filename = userId + "avatar" + getFileExtension(file.getOriginalFilename());
+            String filename = file.getOriginalFilename();
             Path tempFile = Files.createTempFile("temp-", filename);
             Files.copy(file.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
 

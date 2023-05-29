@@ -106,9 +106,9 @@ public class UserController {
         }
     }
 
-    @PostMapping("/profile/files")
-    public ResponseEntity<String> uploadFile(@RequestBody UserUploadAvatarDto uploadData) {
-        if (userServices.uploadFile(uploadData.getFile(), uploadData.getUserId())){
+    @PostMapping(value = "/profile/files", consumes = {"*/*"})
+    public ResponseEntity<String> uploadFile(@RequestBody MultipartFile file) {
+        if (userServices.uploadFile(file)){
             return ResponseEntity.ok().build();
         }
         else return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
