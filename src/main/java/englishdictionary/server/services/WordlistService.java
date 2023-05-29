@@ -48,7 +48,7 @@ public class WordlistService {
 
         Map<String, Object> docData = new HashMap<>();
         docData.put("name", wordlist.getName());
-        docData.put("user", wordlist.getUserId());
+        docData.put("user_id", wordlist.getUserId());
         docData.put("words", wordlist.getWords());
 
         firestore.collection("word_lists").document().set(docData);
