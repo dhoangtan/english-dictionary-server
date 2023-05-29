@@ -4,10 +4,8 @@ import com.google.api.client.util.Value;
 import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.*;
-import com.google.cloud.storage.BlobId;
-import com.google.cloud.storage.BlobInfo;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
+import com.google.cloud.storage.*;
+import com.google.cloud.storage.Blob;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
@@ -56,7 +54,18 @@ public class UserService {
             Storage storage = options.getService();
             BlobId blobId = BlobId.of(bucketName, filename);
             BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
-            storage.create(blobInfo, Files.readAllBytes(tempFile));
+            Blob blob = storage.create(blobInfo, Files.readAllBytes(tempFile));
+
+
+            System.out.println(blob.getMediaLink());
+            System.out.println(blob.getGeneratedId());
+            System.out.println(blob.getCrc32c());
+            System.out.println(blob.getKmsKeyName());
+            System.out.println(blob.getSelfLink());
+
+            for (Acl a : blob.getAcl()) {
+                System.out.println(a.toString());
+            }
 
             Files.delete(tempFile);
 

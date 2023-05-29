@@ -17,7 +17,7 @@ public class WordlistService {
 
     public List<Wordlist> getAllUserWordLists(String userId) throws ExecutionException, InterruptedException {
         firestore = FirestoreClient.getFirestore();
-        ApiFuture<QuerySnapshot> future = firestore.collection("word_lists").whereEqualTo("user_id", userId).get();
+        ApiFuture<QuerySnapshot> future = firestore.collection("word_lists").whereEqualTo("userId", userId).get();
         List<QueryDocumentSnapshot> documents = future.get().getDocuments();
         List<Wordlist> wordlists = new ArrayList<>();
         for (DocumentSnapshot document : documents) {
@@ -25,7 +25,7 @@ public class WordlistService {
             wordlist.setWordlistId(document.getId());
             // NOTE: somehow userId cannot be parsed
             //      manually set userId is required.
-            wordlist.setUserId(document.get("user_id").toString());
+            wordlist.setUserId(document.get("userId").toString());
             wordlists.add(wordlist);
         }
         return wordlists;
@@ -48,7 +48,7 @@ public class WordlistService {
 
         Map<String, Object> docData = new HashMap<>();
         docData.put("name", wordlist.getName());
-        docData.put("user_id", wordlist.getUserId());
+        docData.put("userId", wordlist.getUserId());
         docData.put("words", wordlist.getWords());
 
         firestore.collection("word_lists").document().set(docData);
@@ -76,7 +76,7 @@ public class WordlistService {
             wordlist.setWordlistId(document.getId());
             // NOTE: somehow userId cannot be parsed
             //      manually set userId is required.
-            wordlist.setUserId(document.get("user_id").toString());
+            wordlist.setUserId(document.get("userId").toString());
 
             if (
                     wordlist.getName().toLowerCase().contains(name.toLowerCase()) &&
@@ -103,7 +103,7 @@ public class WordlistService {
         wordlist.setWordlistId(document.getId());
         // NOTE: somehow userId cannot be parsed
         //      manually set userId is required.
-        wordlist.setUserId(document.get("user_id").toString());
+        wordlist.setUserId(document.get("userId").toString());
 
         wordlist.getWords().removeIf(word -> word.getId().equals(wordId));
 
@@ -129,7 +129,7 @@ public class WordlistService {
         wordlist.setWordlistId(document.getId());
         // NOTE: somehow userId cannot be parsed
         //      manually set userId is required.
-        wordlist.setUserId(document.get("user_id").toString());
+        wordlist.setUserId(document.get("userId").toString());
 
         // prevent adding the same word multiple times
         if (wordlist.getWords()
