@@ -8,4 +8,3 @@ services:
         - "BUILD_NO_CACHE=1"
     ports:
       - "4040:8080"
-
