@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.concurrent.ExecutionException;
@@ -93,5 +94,13 @@ public class UserController {
         else{
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @PostMapping("/profile/files")
+    public ResponseEntity<String> uploadFile(@RequestBody MultipartFile file) {
+        if (userServices.uploadFile(file)){
+            return ResponseEntity.ok().build();
+        }
+        else return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 }

@@ -1,7 +1,13 @@
 package englishdictionary.server.services;
 
+import com.google.api.client.util.Value;
 import com.google.api.core.ApiFuture;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.*;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
@@ -13,12 +19,42 @@ import org.springframework.stereotype.Service;
 import com.google.cloud.firestore.Query;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 @Service
 public class UserService {
+    @Value("${firebase.storage.bucket}")
+    private String bucketName;
 
+    public Boolean uploadFile(MultipartFile file) {
+        try {
+            String filename = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
+            Path tempFile = Files.createTempFile("temp-", filename);
+            Files.copy(file.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
+
+            StorageOptions options = StorageOptions.newBuilder()
+                    .setCredentials(GoogleCredentials.getApplicationDefault())
+                    .build();
+            Storage storage = options.getService();
+            BlobId blobId = BlobId.of(bucketName, filename);
+            BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
+            storage.create(blobInfo, Files.readAllBytes(tempFile));
+
+            Files.delete(tempFile);
+
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
     public User getUser(String id) throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbFirestore.collection("users").document(id);
