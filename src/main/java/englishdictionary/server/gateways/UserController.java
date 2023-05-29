@@ -1,5 +1,6 @@
 package englishdictionary.server.gateways;
 
+import englishdictionary.server.dtos.UserUploadAvatarDto;
 import englishdictionary.server.models.User;
 import englishdictionary.server.models.UserAuth;
 import englishdictionary.server.services.UserService;
@@ -7,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.concurrent.ExecutionException;
@@ -102,5 +104,13 @@ public class UserController {
         else{
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @PostMapping("/profile/files")
+    public ResponseEntity<String> uploadFile(@RequestBody UserUploadAvatarDto uploadData) {
+        if (userServices.uploadFile(uploadData.getFile(), uploadData.getUserId())){
+            return ResponseEntity.ok().build();
+        }
+        else return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 }
