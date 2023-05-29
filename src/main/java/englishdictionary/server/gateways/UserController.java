@@ -90,7 +90,7 @@ public class UserController {
                 return null;
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return null;
         }
     }
 
