@@ -38,27 +38,47 @@ public class UserController {
 
     @GetMapping("/{id}/profile/email")
     public String getUserEmail(@PathVariable("id") String id) throws ExecutionException, InterruptedException {
-        return userServices.getUserEmail(id);
+        try {
+            return userServices.getUserEmail(id);
+        }catch (ExecutionException e){
+            throw new ResponseStatusException( HttpStatusCode.valueOf(404));
+        }
     }
 
     @GetMapping("/{id}/profile/fullname")
     public String getUserFullname(@PathVariable("id") String id) throws ExecutionException, InterruptedException {
-        return userServices.getUserFullname(id);
+        try{
+            return userServices.getUserFullname(id);
+        }catch (ExecutionException e){
+            throw new ResponseStatusException( HttpStatusCode.valueOf(404));
+        }
     }
 
     @GetMapping("/{id}/profile/gender")
     public Long getUserGender(@PathVariable("id") String id) throws ExecutionException, InterruptedException {
-        return userServices.getUserGender(id);
+        try{
+            return userServices.getUserGender(id);
+        }catch (ExecutionException e){
+            throw new ResponseStatusException( HttpStatusCode.valueOf(404));
+        }
     }
 
     @GetMapping("/{id}/profile/level")
     public Long getUserLevel(@PathVariable("id") String id) throws ExecutionException, InterruptedException {
-        return userServices.getUserLevel(id);
+        try{
+            return userServices.getUserLevel(id);
+        }catch (ExecutionException e){
+            throw new ResponseStatusException( HttpStatusCode.valueOf(404));
+        }
     }
 
     @GetMapping("/{id}/profile/occupation")
     public Long getUserOccupation(@PathVariable("id") String id) throws ExecutionException, InterruptedException {
-        return userServices.getUserOccupation(id);
+        try{
+            return userServices.getUserOccupation(id);
+        }catch (ExecutionException e){
+            throw new ResponseStatusException( HttpStatusCode.valueOf(404));
+        }
     }
     @PostMapping("/")
     public ResponseEntity<String> login(@RequestBody UserAuth userAuth) {
@@ -70,7 +90,7 @@ public class UserController {
                 return null;
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
@@ -80,7 +100,7 @@ public class UserController {
             String uid = userServices.createUser(user);
             return ResponseEntity.ok().body(uid);
         } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -92,7 +112,7 @@ public class UserController {
             return ResponseEntity.ok().build();
         }
         else{
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
@@ -102,7 +122,7 @@ public class UserController {
             return ResponseEntity.ok().build();
         }
         else{
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
@@ -111,6 +131,6 @@ public class UserController {
         if (userServices.uploadFile(file)){
             return ResponseEntity.ok().build();
         }
-        else return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        else return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 }

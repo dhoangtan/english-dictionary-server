@@ -82,15 +82,17 @@ public class UserService {
 
     public String getUserId(UserAuth userAuth) throws FirebaseAuthException, ExecutionException, InterruptedException {
         UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(userAuth.getEmail());
-        String uid = userRecord.getUid();
-        Firestore dbfirestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = dbfirestore.collection("users").document(uid);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
-        DocumentSnapshot document = future.get();
-        String storedPass = document.getString("password");
-        String hashedPass = hashPassword(userAuth.getPassword());
-        if (MessageDigest.isEqual(storedPass.getBytes(StandardCharsets.UTF_8), hashedPass.getBytes(StandardCharsets.UTF_8))) {
-            return uid;
+        if (userRecord != null) {
+            String uid = userRecord.getUid();
+            Firestore dbfirestore = FirestoreClient.getFirestore();
+            DocumentReference documentReference = dbfirestore.collection("users").document(uid);
+            ApiFuture<DocumentSnapshot> future = documentReference.get();
+            DocumentSnapshot document = future.get();
+            String storedPass = document.getString("password");
+            String hashedPass = hashPassword(userAuth.getPassword());
+            if (MessageDigest.isEqual(storedPass.getBytes(StandardCharsets.UTF_8), hashedPass.getBytes(StandardCharsets.UTF_8))) {
+                return uid;
+            }
         }
         return null;
     }
