@@ -13,6 +13,5 @@ public class User {
     private Integer gender;
     private Integer level;
     private Integer occupation;
-    @JsonIgnore
     private String password;
 }

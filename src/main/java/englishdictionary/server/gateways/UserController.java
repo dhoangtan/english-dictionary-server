@@ -78,9 +78,9 @@ public class UserController {
     public ResponseEntity<String> createUser(@RequestBody User user) {
         try {
             String uid = userServices.createUser(user);
-            return ResponseEntity.ok().body("User created successfully: " + uid);
+            return ResponseEntity.ok().body(uid);
         } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating user: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
