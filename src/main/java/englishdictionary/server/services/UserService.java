@@ -10,8 +10,10 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
+import com.google.firebase.cloud.StorageClient;
 import englishdictionary.server.EnglishDictionaryServerApplication;
 import englishdictionary.server.dtos.UserUploadAvatarDto;
 import englishdictionary.server.models.User;
@@ -31,6 +33,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserService {
@@ -41,13 +44,14 @@ public class UserService {
                 .map(f -> f.substring(filename.lastIndexOf(".") + 1));
     }
 
-    public Boolean uploadFile(MultipartFile file) {
+    public Boolean uploadFile(MultipartFile file, String id) {
         try {
             String bucketName = "englishdictionary-8237a.appspot.com";
             InputStream serviceAccount = EnglishDictionaryServerApplication.class.getResourceAsStream("/service_account_key.json");
 //            String filename = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
-            String filename = file.getOriginalFilename();
-            Path tempFile = Files.createTempFile("temp-", filename);
+            String filename = id;
+
+            Path tempFile = Files.createTempFile(id, filename);
             Files.copy(file.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
 
             StorageOptions options = StorageOptions.newBuilder()
@@ -57,7 +61,6 @@ public class UserService {
             BlobId blobId = BlobId.of(bucketName, filename);
             BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
             storage.create(blobInfo, Files.readAllBytes(tempFile));
-
             Files.delete(tempFile);
 
             return true;
@@ -192,5 +195,12 @@ public class UserService {
         ApiFuture<WriteResult> collection = dbFirestore.collection("users").document(id).set(user);
         collection.get();
         return true;
+    }
+    public String getFileAccessToken(String id) throws FirebaseAuthException {
+        String bucketName = "englishdictionary-8237a.appspot.com";
+        String fullFilePath = "gs://" + bucketName + "/" + id;
+        String token = FirebaseAuth.getInstance().createCustomToken(fullFilePath);
+        String url = "https://firebasestorage.googleapis.com/v0/b/englishdictionary-8237a.appspot.com/o/"+id+"?alt=media&token="+token;
+        return url;
     }
 }

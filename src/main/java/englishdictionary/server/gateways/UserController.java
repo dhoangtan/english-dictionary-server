@@ -126,11 +126,15 @@ public class UserController {
         }
     }
 
-    @PostMapping(value = "/profile/files", consumes = {"*/*"})
-    public ResponseEntity<String> uploadFile(@RequestBody MultipartFile file) {
-        if (userServices.uploadFile(file)){
+    @PostMapping(value = "/profile/files/{id}", consumes = {"*/*"})
+    public ResponseEntity<String> uploadFile(@RequestBody MultipartFile file, @PathVariable("id") String id) {
+        if (userServices.uploadFile(file, id)){
             return ResponseEntity.ok().build();
         }
         else return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    @GetMapping ("/profile/avatar/")
+    public ResponseEntity<String> showFile(@RequestParam String id) throws FirebaseAuthException {
+        return ResponseEntity.ok().body(userServices.getFileAccessToken(id));
     }
 }
