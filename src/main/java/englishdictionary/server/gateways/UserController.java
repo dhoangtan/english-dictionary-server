@@ -140,8 +140,13 @@ public class UserController {
         }
         else return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
-    @GetMapping ("/profile/avatar/")
-    public ResponseEntity<String> showFile(@RequestParam String id) throws FirebaseAuthException {
-        return ResponseEntity.ok().body(userServices.getFileAccessToken(id));
+    @GetMapping ("/profile/avatar/{id}")
+    public ResponseEntity<String> showFile(@PathVariable("id") String id){
+        try{
+            return ResponseEntity.ok().body(userServices.getFileAccessToken(id));
+        }catch(FirebaseAuthException f)
+        {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
 }

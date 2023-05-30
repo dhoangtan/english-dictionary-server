@@ -193,7 +193,7 @@ public class UserService {
         String bucketName = "englishdictionary-8237a.appspot.com";
         String fullFilePath = "gs://" + bucketName + "/" + id;
         String token = FirebaseAuth.getInstance().createCustomToken(fullFilePath);
-        String url = "https://firebasestorage.googleapis.com/v0/b/englishdictionary-8237a.appspot.com/o/"+id+"?alt=media&token="+token;
+        String url = "https://firebasestorage.googleapis.com/v0/b/englishdictionary-8237a.appspot.com/o/"+id+".jpg"+"?alt=media&token="+token;
         return url;
     }
 }
