@@ -36,9 +36,11 @@ public class WordListController {
         try {
             return wordlistService.getWordlistById(wordlistId);
         } catch (ExecutionException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+//            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            return null;
         } catch (InterruptedException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+//            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+            return null;
         }
     }
 

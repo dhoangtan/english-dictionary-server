@@ -1,6 +1,7 @@
 package englishdictionary.server.models;
 
 import lombok.Data;
+import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.List;

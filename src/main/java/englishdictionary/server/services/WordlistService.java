@@ -44,7 +44,9 @@ public class WordlistService {
     public Wordlist getWordlistById(String wordListId) throws ExecutionException, InterruptedException {
         firestore = FirestoreClient.getFirestore();
         DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordListId).get().get();
-        return documentSnapshot.toObject(Wordlist.class);
+        Wordlist wordlist = documentSnapshot.toObject(Wordlist.class);
+        wordlist.setWordlistId(wordListId);
+        return wordlist;
     }
 
     public Wordlist createWordlist(String wordlistName, String userId) throws ExecutionException, InterruptedException {
