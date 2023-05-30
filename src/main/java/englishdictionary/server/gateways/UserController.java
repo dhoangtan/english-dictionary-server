@@ -94,10 +94,10 @@ public class UserController {
             if (uid != null) {
                 return ResponseEntity.ok(uid);
             } else {
-                return null;
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
         } catch (Exception e) {
-            return null;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
