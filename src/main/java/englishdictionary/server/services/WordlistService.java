@@ -7,6 +7,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
+import englishdictionary.server.errors.DuplicateWordlistException;
+import englishdictionary.server.errors.UserNotFoundException;
+import englishdictionary.server.errors.WordNotFoundException;
+import englishdictionary.server.errors.WordlistNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.google.api.core.ApiFuture;
@@ -20,6 +25,7 @@ import com.google.firebase.cloud.FirestoreClient;
 
 import englishdictionary.server.models.Word;
 import englishdictionary.server.models.Wordlist;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class WordlistService {
@@ -38,6 +44,10 @@ public class WordlistService {
             wordlist.setUserId(document.get("userId").toString());
             wordlists.add(wordlist);
         }
+
+        if (wordlists.isEmpty())
+            throw new UserNotFoundException(userId);
+
         return wordlists;
     }
 
@@ -45,13 +55,20 @@ public class WordlistService {
         firestore = FirestoreClient.getFirestore();
         DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordListId).get().get();
         Wordlist wordlist = documentSnapshot.toObject(Wordlist.class);
+        if (wordlist == null)
+            throw new WordlistNotFoundException(wordListId);
+
         wordlist.setWordlistId(wordListId);
         return wordlist;
     }
 
     public Wordlist createWordlist(String wordlistName, String userId) throws ExecutionException, InterruptedException {
         firestore = FirestoreClient.getFirestore();
-        DocumentSnapshot documentSnapshot = firestore.collection("users").document(userId).get().get();
+
+        List<Wordlist> wordlists = getAllUserWordLists(userId);
+        for(Wordlist wordlist : wordlists)
+            if (Objects.equals(wordlist.getName(), wordlistName))
+                throw new DuplicateWordlistException(wordlistName);
 
         Wordlist wordlist = new Wordlist();
         wordlist.setName(wordlistName);
@@ -73,8 +90,13 @@ public class WordlistService {
 
         Wordlist wordlist = documentSnapshot.toObject(Wordlist.class);
         if (wordlist == null)
-            return null;
-        return wordlist.getWords().stream().filter(w -> Objects.equals(w.getId(), wordId)).findFirst().orElse(null);
+            throw new WordlistNotFoundException(wordlistId);
+
+        Word word = wordlist.getWords().stream().filter(w -> Objects.equals(w.getId(), wordId)).findFirst().orElse(null);
+        if (word == null)
+            throw new WordNotFoundException(wordId);
+
+        return word;
     }
 
     public List<Wordlist> searchForWordlist(String name, String word) throws ExecutionException, InterruptedException{
@@ -100,10 +122,10 @@ public class WordlistService {
         return wordlists;
     }
 
-    public boolean deleteWordlist(String id) {
+    public boolean deleteWordlist(String wordlistId) {
         firestore = FirestoreClient.getFirestore();
-        ApiFuture<WriteResult> writeResult = firestore.collection("word_lists").document(id).delete();
-        return true;
+        ApiFuture<WriteResult> writeResult = firestore.collection("word_lists").document(wordlistId).delete();
+        return writeResult.isDone();
     }
 
     public boolean removeWordlistWord(String wordlistId, Integer wordId) throws ExecutionException, InterruptedException {
@@ -112,6 +134,10 @@ public class WordlistService {
         DocumentSnapshot document = documentReference.get().get();
 
         Wordlist wordlist = document.toObject(Wordlist.class);
+
+        if (wordlist == null)
+            throw new WordlistNotFoundException(wordlistId);
+
         wordlist.setWordlistId(document.getId());
         // NOTE: somehow userId cannot be parsed
         //      manually set userId is required.
@@ -120,16 +146,19 @@ public class WordlistService {
         wordlist.getWords().removeIf(word -> word.getId().equals(wordId));
 
         Map<String, Object> map = wordlist.toHashMap();
-        documentReference.update(map);
+        ApiFuture<WriteResult> updateResult = documentReference.update(map);
 
-        return true;
+        return updateResult.isDone();
     }
 
-    public boolean renameWordList(String id, String name) throws ExecutionException, InterruptedException {
+    public boolean renameWordList(String wordlistId, String name) throws ExecutionException, InterruptedException {
         firestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = firestore.collection("word_lists").document(id);
-        documentReference.update("name", name);
-        return true;
+        DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordlistId).get().get();
+        if (!documentSnapshot.exists())
+            throw new WordlistNotFoundException(wordlistId);
+        DocumentReference documentReference = documentSnapshot.getReference();
+        ApiFuture<WriteResult> updateResult = documentReference.update("name", name);
+        return updateResult.isDone();
     }
 
     public boolean addWordToWordlist(String wordlistId, Word word) throws ExecutionException, InterruptedException{
@@ -138,6 +167,10 @@ public class WordlistService {
         DocumentSnapshot document = documentReference.get().get();
 
         Wordlist wordlist = document.toObject(Wordlist.class);
+
+        if (wordlist == null)
+            throw new WordlistNotFoundException(wordlistId);
+
         wordlist.setWordlistId(document.getId());
         // NOTE: somehow userId cannot be parsed
         //      manually set userId is required.
