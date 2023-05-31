@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @RestControllerAdvice
@@ -16,19 +17,21 @@ public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
             WordNotFoundException.class,
             DuplicateWordlistException.class
     })
-    public ResponseEntity<String> handleNotFoundException(Exception e) {
+    public ResponseEntity<String> handleNotFoundException(RuntimeException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<String> handleUnauthorizedException(Exception e) {
+    @ExceptionHandler({
+            AuthorizationException.class,
+    })
+    public ResponseEntity<String> handleUnauthorizedException(AuthorizationException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleSystemException(Exception e) {
         e.printStackTrace();
-        return ResponseEntity.status(500).body("Internal server errors");
+        return ResponseEntity.status(500).body("Internal Server Error");
     }
 
 }

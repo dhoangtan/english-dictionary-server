@@ -2,9 +2,9 @@ package englishdictionary.server.gateways;
 
 import java.util.concurrent.ExecutionException;
 
-import englishdictionary.server.errors.UnauthorizedException;
+import englishdictionary.server.errors.AuthorizationException;
+import englishdictionary.server.errors.UserNotFoundException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -38,8 +37,13 @@ public class UserController {
         try {
             User user = userServices.getUser(id);
             return new ResponseEntity<>(user, HttpStatus.OK);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        catch (UserNotFoundException userNotFoundException) {
+            // TODO: LOGGER CALLED
+            throw userNotFoundException;
+        }
+        catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -53,7 +57,11 @@ public class UserController {
         try {
             String email = userServices.getUserEmail(id);
             return new ResponseEntity<>(email, HttpStatus.OK);
-        } catch (Exception e) {
+        }
+        catch (UserNotFoundException userNotFoundException) {
+            throw userNotFoundException;
+        }
+        catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -102,11 +110,11 @@ public class UserController {
     public ResponseEntity<String> login(@RequestBody UserAuth userAuth) {
         try {
             String uid = userServices.getUserId(userAuth);
-            if (uid != null)
-                return ResponseEntity.status(HttpStatus.OK).body(uid);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.OK).body(uid);
+        } catch (AuthorizationException authorizationException) {
+            throw authorizationException;
+        } catch (ExecutionException | FirebaseAuthException | InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

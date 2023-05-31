@@ -9,9 +9,9 @@ import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+import englishdictionary.server.errors.AuthorizationException;
 import englishdictionary.server.errors.UserNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -64,7 +64,7 @@ public class UserService {
         }
     }
 
-    public User getUser(String userId) throws ExecutionException, InterruptedException {
+    public User getUser(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbFirestore.collection("users").document(userId);
         ApiFuture<DocumentSnapshot> future = documentReference.get();
@@ -77,24 +77,24 @@ public class UserService {
         return user;
     }
 
-    public String getUserId(UserAuth userAuth) throws FirebaseAuthException, ExecutionException, InterruptedException {
+    public String getUserId(UserAuth userAuth) throws FirebaseAuthException, ExecutionException, InterruptedException, AuthorizationException {
         UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(userAuth.getEmail());
-        if (userRecord != null) {
-            String uid = userRecord.getUid();
-            Firestore dbfirestore = FirestoreClient.getFirestore();
-            DocumentReference documentReference = dbfirestore.collection("users").document(uid);
-            ApiFuture<DocumentSnapshot> future = documentReference.get();
-            DocumentSnapshot document = future.get();
-            String storedPass = document.getString("password");
-            String hashedPass = hashPassword(userAuth.getPassword());
-            if (MessageDigest.isEqual(storedPass.getBytes(StandardCharsets.UTF_8), hashedPass.getBytes(StandardCharsets.UTF_8))) {
-                return uid;
-            }
+        if (userRecord == null)
+            throw new AuthorizationException();
+        String uid = userRecord.getUid();
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("users").document(uid);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        String storedPass = document.getString("password");
+        String hashedPass = hashPassword(userAuth.getPassword());
+        if (MessageDigest.isEqual(storedPass.getBytes(StandardCharsets.UTF_8), hashedPass.getBytes(StandardCharsets.UTF_8))) {
+            return uid;
         }
-        return null;
+        throw new AuthorizationException();
     }
 
-    public String getUserEmail(String userId) throws ExecutionException, InterruptedException {
+    public String getUserEmail(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         User user = getUser(userId);
 
         if (user == null) {
@@ -103,7 +103,7 @@ public class UserService {
         return user.getEmail();
     }
 
-    public String getUserFullname(String userId) throws ExecutionException, InterruptedException {
+    public String getUserFullname(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         User user = getUser(userId);
 
         if (user == null) {
@@ -112,7 +112,7 @@ public class UserService {
         return user.getFullName();
     }
 
-    public Integer getUserGender(String userId) throws ExecutionException, InterruptedException {
+    public Integer getUserGender(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         User user = getUser(userId);
 
         if (user == null) {
@@ -121,7 +121,7 @@ public class UserService {
         return user.getGender();
     }
 
-    public Integer getUserLevel(String userId) throws ExecutionException, InterruptedException {
+    public Integer getUserLevel(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         User user = getUser(userId);
 
         if (user == null) {
@@ -130,7 +130,7 @@ public class UserService {
         return user.getLevel();
     }
 
-    public Integer getUserOccupation(String userId) throws ExecutionException, InterruptedException {
+    public Integer getUserOccupation(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         User user = getUser(userId);
 
         if (user == null) {
@@ -139,7 +139,7 @@ public class UserService {
         return user.getOccupation();
     }
 
-    public String createUser(User user) throws FirebaseAuthException, ExecutionException, InterruptedException {
+    public String createUser(User user) throws FirebaseAuthException, ExecutionException, InterruptedException, RuntimeException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         String hashedPassword = hashPassword(user.getPassword());
         UserRecord.CreateRequest request = new UserRecord.CreateRequest()
@@ -159,7 +159,7 @@ public class UserService {
         return uid;
     }
 
-    private String hashPassword(String password) {
+    private String hashPassword(String password) throws RuntimeException {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] encodedHash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
@@ -169,7 +169,7 @@ public class UserService {
         }
     }
 
-    public String updateUserInfo(UserAuth userAuth, String id) throws FirebaseAuthException, ExecutionException, InterruptedException {
+    public String updateUserInfo(UserAuth userAuth, String id) throws FirebaseAuthException {
         UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(id)
                 .setEmail(userAuth.getEmail())
                 .setPassword(userAuth.getPassword());
