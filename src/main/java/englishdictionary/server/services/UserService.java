@@ -12,6 +12,7 @@ import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+import englishdictionary.server.errors.UserNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -63,17 +64,17 @@ public class UserService {
         }
     }
 
-    public User getUser(String id) throws ExecutionException, InterruptedException {
+    public User getUser(String userId) throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = dbFirestore.collection("users").document(id);
+        DocumentReference documentReference = dbFirestore.collection("users").document(userId);
         ApiFuture<DocumentSnapshot> future = documentReference.get();
         DocumentSnapshot document = future.get();
         User user;
-        if (document.exists()) {
-            user = document.toObject(User.class);
-            return user;
+        if (!document.exists()) {
+            throw new UserNotFoundException(userId);
         }
-        return null;
+        user = document.toObject(User.class);
+        return user;
     }
 
     public String getUserId(UserAuth userAuth) throws FirebaseAuthException, ExecutionException, InterruptedException {
@@ -93,59 +94,49 @@ public class UserService {
         return null;
     }
 
-    public String getUserEmail(String id) throws ExecutionException, InterruptedException {
-        Firestore dbfirestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = dbfirestore.collection("users").document(id);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
-        DocumentSnapshot document = future.get();
-        if (document.exists()) {
-            return document.getString("email");
+    public String getUserEmail(String userId) throws ExecutionException, InterruptedException {
+        User user = getUser(userId);
+
+        if (user == null) {
+            throw new UserNotFoundException(userId);
         }
-        return null;
+        return user.getEmail();
     }
 
-    public String getUserFullname(String id) throws ExecutionException, InterruptedException {
-        Firestore dbfirestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = dbfirestore.collection("users").document(id);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
-        DocumentSnapshot document = future.get();
-        if (document.exists()) {
-            return document.getString("full_name");
+    public String getUserFullname(String userId) throws ExecutionException, InterruptedException {
+        User user = getUser(userId);
+
+        if (user == null) {
+            throw new UserNotFoundException(userId);
         }
-        return null;
+        return user.getFullName();
     }
 
-    public Long getUserGender(String id) throws ExecutionException, InterruptedException {
-        Firestore dbfirestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = dbfirestore.collection("users").document(id);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
-        DocumentSnapshot document = future.get();
-        if (document.exists()) {
-            return document.getLong("gender");
+    public Integer getUserGender(String userId) throws ExecutionException, InterruptedException {
+        User user = getUser(userId);
+
+        if (user == null) {
+            throw new UserNotFoundException(userId);
         }
-        return null;
+        return user.getGender();
     }
 
-    public Long getUserLevel(String id) throws ExecutionException, InterruptedException {
-        Firestore dbfirestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = dbfirestore.collection("users").document(id);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
-        DocumentSnapshot document = future.get();
-        if (document.exists()) {
-            return document.getLong("level");
+    public Integer getUserLevel(String userId) throws ExecutionException, InterruptedException {
+        User user = getUser(userId);
+
+        if (user == null) {
+            throw new UserNotFoundException(userId);
         }
-        return null;
+        return user.getLevel();
     }
 
-    public Long getUserOccupation(String id) throws ExecutionException, InterruptedException {
-        Firestore dbfirestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = dbfirestore.collection("users").document(id);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
-        DocumentSnapshot document = future.get();
-        if (document.exists()) {
-            return document.getLong("occupation");
+    public Integer getUserOccupation(String userId) throws ExecutionException, InterruptedException {
+        User user = getUser(userId);
+
+        if (user == null) {
+            throw new UserNotFoundException(userId);
         }
-        return null;
+        return user.getOccupation();
     }
 
     public String createUser(User user) throws FirebaseAuthException, ExecutionException, InterruptedException {
@@ -162,6 +153,9 @@ public class UserService {
         ApiFuture<WriteResult> writeResult = userDocRef.set(user);
         writeResult.get();
 
+        if (!writeResult.isDone())
+            throw new RuntimeException("An unexpected error occurred");
+
         return uid;
     }
 
@@ -171,7 +165,7 @@ public class UserService {
             byte[] encodedHash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(encodedHash);
         } catch (NoSuchAlgorithmException e) {
-            return null;
+            throw new RuntimeException("An unexpected error occurred");
         }
     }
 

@@ -21,83 +21,91 @@ import com.google.firebase.auth.FirebaseAuthException;
 import englishdictionary.server.models.User;
 import englishdictionary.server.models.UserAuth;
 import englishdictionary.server.services.UserService;
+
 @RestController
 @RequestMapping("api/user/")
 public class UserController {
 
     private final UserService userServices;
+
     public UserController(UserService userServices) {
         this.userServices = userServices;
     }
 
     @GetMapping("/{id}/profile")
-    public User getUser(@PathVariable("id") String id) throws InterruptedException{
-        try{
-            return userServices.getUser(id);
-        } catch (ExecutionException e){
-            throw new ResponseStatusException( HttpStatusCode.valueOf(404));
+    public ResponseEntity<User> getUser(@PathVariable("id") String id) {
+        try {
+            User user = userServices.getUser(id);
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @GetMapping("/test")
-    public String test(){
+    public String test() {
         return ("test user endpoint");
     }
 
     @GetMapping("/{id}/profile/email")
-    public String getUserEmail(@PathVariable("id") String id) throws ExecutionException, InterruptedException {
+    public ResponseEntity<String> getUserEmail(@PathVariable("id") String id) {
         try {
-            return userServices.getUserEmail(id);
-        }catch (ExecutionException e){
-            throw new ResponseStatusException( HttpStatusCode.valueOf(404));
+            String email = userServices.getUserEmail(id);
+            return new ResponseEntity<>(email, HttpStatus.OK);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/{id}/profile/fullname")
-    public String getUserFullname(@PathVariable("id") String id) throws ExecutionException, InterruptedException {
-        try{
-            return userServices.getUserFullname(id);
-        }catch (ExecutionException e){
-            throw new ResponseStatusException( HttpStatusCode.valueOf(404));
+    public ResponseEntity<String> getUserFullname(@PathVariable("id") String id) {
+        try {
+            String fullName = userServices.getUserFullname(id);
+            return new ResponseEntity<>(fullName, HttpStatus.OK);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/{id}/profile/gender")
-    public Long getUserGender(@PathVariable("id") String id) throws ExecutionException, InterruptedException {
-        try{
-            return userServices.getUserGender(id);
-        }catch (ExecutionException e){
-            throw new ResponseStatusException( HttpStatusCode.valueOf(404));
+    public ResponseEntity<Integer> getUserGender(@PathVariable("id") String id) {
+        try {
+            Integer gender = userServices.getUserGender(id);
+            return new ResponseEntity<>(gender, HttpStatus.OK);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/{id}/profile/level")
-    public Long getUserLevel(@PathVariable("id") String id) throws ExecutionException, InterruptedException {
-        try{
-            return userServices.getUserLevel(id);
-        }catch (ExecutionException e){
-            throw new ResponseStatusException( HttpStatusCode.valueOf(404));
+    public ResponseEntity<Integer> getUserLevel(@PathVariable("id") String id) {
+        try {
+            Integer level = userServices.getUserLevel(id);
+            return new ResponseEntity<>(level, HttpStatus.OK);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/{id}/profile/occupation")
-    public Long getUserOccupation(@PathVariable("id") String id) throws ExecutionException, InterruptedException {
-        try{
-            return userServices.getUserOccupation(id);
-        }catch (ExecutionException e){
-            throw new ResponseStatusException( HttpStatusCode.valueOf(404));
+    public ResponseEntity<Integer> getUserOccupation(@PathVariable("id") String id) {
+        try {
+            Integer occupation = userServices.getUserOccupation(id);
+            return new ResponseEntity<>(occupation, HttpStatus.OK);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @PostMapping("/")
     public ResponseEntity<String> login(@RequestBody UserAuth userAuth) {
         try {
             String uid = userServices.getUserId(userAuth);
-            if (uid != null) {
-                return ResponseEntity.ok(uid);
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
+            if (uid != null)
+                return ResponseEntity.status(HttpStatus.OK).body(uid);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -105,48 +113,41 @@ public class UserController {
     public ResponseEntity<String> createUser(@RequestBody User user) {
         try {
             String uid = userServices.createUser(user);
-            return ResponseEntity.ok().body(uid);
+            return ResponseEntity.status(HttpStatus.OK).body(uid);
         } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Integer> updateUserInfo(@RequestBody UserAuth userAuth, @PathVariable("id") String id) throws FirebaseAuthException, ExecutionException, InterruptedException {
-        if(userServices.updateUserInfo(userAuth, id) != null){
-            return ResponseEntity.ok().build();
-        }
-        else{
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    public HttpStatus updateUserInfo(@RequestBody UserAuth userAuth, @PathVariable("id") String id) throws FirebaseAuthException, ExecutionException, InterruptedException {
+        if (userServices.updateUserInfo(userAuth, id) != null)
+            return HttpStatus.OK;
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
     }
 
-    @PutMapping ("/profile/{id}")
-    public ResponseEntity<Integer> updateUserProfile(@RequestBody User user, @PathVariable("id") String id) throws ExecutionException, InterruptedException {
-        if(userServices.updateUserProfile(user, id)){
-            return ResponseEntity.ok().build();
-        }
-        else{
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    @PutMapping("/profile/{id}")
+    public HttpStatus updateUserProfile(@RequestBody User user, @PathVariable("id") String id) throws ExecutionException, InterruptedException {
+        if (userServices.updateUserProfile(user, id))
+            return HttpStatus.OK;
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
     }
 
     @PostMapping(value = "/profile/files/{id}", consumes = {"*/*"})
     public ResponseEntity<String> uploadFile(@RequestBody MultipartFile file, @PathVariable("id") String id) {
-        if (userServices.uploadFile(file, id)){
-            return ResponseEntity.ok().build();
-        }
-        else return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (userServices.uploadFile(file, id))
+            return ResponseEntity.status(HttpStatus.OK).build();
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
     }
-    @GetMapping ("/profile/avatar/{id}")
-    public ResponseEntity<String> showFile(@PathVariable("id") String id){
-        try{
-            return ResponseEntity.ok().body(userServices.getFileAccessToken(id));
-        }catch(FirebaseAuthException f)
-        {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+    @GetMapping("/profile/avatar/{id}")
+    public ResponseEntity<String> showFile(@PathVariable("id") String id) {
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(userServices.getFileAccessToken(id));
+        } catch (FirebaseAuthException f) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 }
