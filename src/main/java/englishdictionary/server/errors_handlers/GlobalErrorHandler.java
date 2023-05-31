@@ -1,9 +1,7 @@
 package englishdictionary.server.errors_handlers;
 
-import englishdictionary.server.errors.DuplicateWordlistException;
-import englishdictionary.server.errors.UserNotFoundException;
-import englishdictionary.server.errors.WordNotFoundException;
-import englishdictionary.server.errors.WordlistNotFoundException;
+import englishdictionary.server.errors.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -19,7 +17,12 @@ public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
             DuplicateWordlistException.class
     })
     public ResponseEntity<String> handleNotFoundException(Exception e) {
-        return ResponseEntity.status(404).body(e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<String> handleUnauthorizedException(Exception e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

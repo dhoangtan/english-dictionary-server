@@ -2,6 +2,7 @@ package englishdictionary.server.gateways;
 
 import java.util.concurrent.ExecutionException;
 
+import englishdictionary.server.errors.UnauthorizedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -103,7 +104,7 @@ public class UserController {
             String uid = userServices.getUserId(userAuth);
             if (uid != null)
                 return ResponseEntity.status(HttpStatus.OK).body(uid);
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("");
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -115,7 +116,7 @@ public class UserController {
             String uid = userServices.createUser(user);
             return ResponseEntity.status(HttpStatus.OK).body(uid);
         } catch (FirebaseAuthException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("");
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -125,21 +126,21 @@ public class UserController {
     public HttpStatus updateUserInfo(@RequestBody UserAuth userAuth, @PathVariable("id") String id) throws FirebaseAuthException, ExecutionException, InterruptedException {
         if (userServices.updateUserInfo(userAuth, id) != null)
             return HttpStatus.OK;
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        return HttpStatus.UNAUTHORIZED;
     }
 
     @PutMapping("/profile/{id}")
     public HttpStatus updateUserProfile(@RequestBody User user, @PathVariable("id") String id) throws ExecutionException, InterruptedException {
         if (userServices.updateUserProfile(user, id))
             return HttpStatus.OK;
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        return HttpStatus.UNAUTHORIZED;
     }
 
     @PostMapping(value = "/profile/files/{id}", consumes = {"*/*"})
     public ResponseEntity<String> uploadFile(@RequestBody MultipartFile file, @PathVariable("id") String id) {
         if (userServices.uploadFile(file, id))
             return ResponseEntity.status(HttpStatus.OK).build();
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("");
     }
 
     @GetMapping("/profile/avatar/{id}")
@@ -147,7 +148,7 @@ public class UserController {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(userServices.getFileAccessToken(id));
         } catch (FirebaseAuthException f) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("");
         }
     }
 }
