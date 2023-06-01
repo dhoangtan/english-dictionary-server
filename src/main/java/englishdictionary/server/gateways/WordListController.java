@@ -30,7 +30,7 @@ public class WordListController {
         try {
             List<Wordlist> wordlists = wordlistService.getAllUserWordLists(userId);
             return new ResponseEntity<>(wordlists, HttpStatus.OK);
-        } catch (Exception e) {
+        } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -40,7 +40,7 @@ public class WordListController {
         try {
             Wordlist wordlist = wordlistService.getWordlistById(wordlistId);
             return new ResponseEntity<>(wordlist, HttpStatus.OK);
-        } catch (Exception e) {
+        } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -49,7 +49,7 @@ public class WordListController {
     public List<Wordlist> searchForWordList(@RequestParam(name = "name") String name, @RequestParam(name = "word") String word) {
         try {
             return wordlistService.searchForWordlist(name, word);
-        } catch (Exception e) {
+        } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -62,8 +62,7 @@ public class WordListController {
         try {
             Word word = wordlistService.getWordlistWord(wordlistId, wordId);
             return word;
-        }
-        catch (Exception e) {
+        } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -73,7 +72,7 @@ public class WordListController {
         try {
             Wordlist wordlist = wordlistService.createWordlist(wordListDto.getName(),wordListDto.getUserId());
             return new ResponseEntity<>(wordlist, HttpStatus.CREATED);
-        } catch (Exception e) {
+        } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -94,7 +93,7 @@ public class WordListController {
             if (wordlistService.removeWordlistWord(wordlistId, wordId))
                 return HttpStatus.OK;
             return HttpStatus.BAD_REQUEST;
-        } catch (Exception e) {
+        } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -105,7 +104,7 @@ public class WordListController {
             if (wordlistService.renameWordList(dto.getId(), dto.getName()))
                 return HttpStatus.OK;
             return HttpStatus.BAD_REQUEST;
-        } catch (Exception e) {
+        } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -116,7 +115,7 @@ public class WordListController {
             if (wordlistService.addWordToWordlist(dto.getWordlistId(), dto.getWord()))
                 return HttpStatus.CREATED;
             return HttpStatus.BAD_REQUEST;
-        } catch (Exception e) {
+        } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
