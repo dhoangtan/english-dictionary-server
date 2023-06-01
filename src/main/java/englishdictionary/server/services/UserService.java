@@ -1,23 +1,25 @@
 package englishdictionary.server.services;
 
+import com.google.api.client.util.DateTime;
 import com.google.api.core.ApiFuture;
+import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.*;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
 import englishdictionary.server.models.User;
 import englishdictionary.server.models.UserAuth;
 import org.springframework.stereotype.Service;
-import com.google.cloud.firestore.Query;
-import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
+
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -136,6 +138,20 @@ public class UserService {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         ApiFuture<WriteResult> collection = dbFirestore.collection("users").document(id).set(user);
         collection.get();
+        return true;
+    }
+    public Timestamp getDate(String userId, String wordListId) throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("word_lists").document(userId);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        if(document.exists()){
+           return document.getDate("date");
+        }
+        return null;
+    }
+    public Boolean dateThreshold (User user){
+        LocalDate currentDate = LocalDate.now();
         return true;
     }
 }
