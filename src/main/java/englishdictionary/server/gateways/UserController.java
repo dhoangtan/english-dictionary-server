@@ -37,12 +37,10 @@ public class UserController {
         try {
             User user = userServices.getUser(id);
             return new ResponseEntity<>(user, HttpStatus.OK);
-        }
-        catch (UserNotFoundException userNotFoundException) {
+        } catch (UserNotFoundException userNotFoundException) {
             // TODO: LOGGER CALLED
             throw userNotFoundException;
-        }
-        catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
@@ -57,11 +55,9 @@ public class UserController {
         try {
             String email = userServices.getUserEmail(id);
             return new ResponseEntity<>(email, HttpStatus.OK);
-        }
-        catch (UserNotFoundException userNotFoundException) {
+        } catch (UserNotFoundException userNotFoundException) {
             throw userNotFoundException;
-        }
-        catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -71,7 +67,9 @@ public class UserController {
         try {
             String fullName = userServices.getUserFullname(id);
             return new ResponseEntity<>(fullName, HttpStatus.OK);
-        } catch (Exception e) {
+        } catch (UserNotFoundException userNotFoundException) {
+            throw userNotFoundException;
+        } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -81,7 +79,9 @@ public class UserController {
         try {
             Integer gender = userServices.getUserGender(id);
             return new ResponseEntity<>(gender, HttpStatus.OK);
-        } catch (Exception e) {
+        } catch (UserNotFoundException userNotFoundException) {
+            throw userNotFoundException;
+        } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -91,7 +91,9 @@ public class UserController {
         try {
             Integer level = userServices.getUserLevel(id);
             return new ResponseEntity<>(level, HttpStatus.OK);
-        } catch (Exception e) {
+        } catch (UserNotFoundException userNotFoundException) {
+            throw userNotFoundException;
+        } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -101,7 +103,9 @@ public class UserController {
         try {
             Integer occupation = userServices.getUserOccupation(id);
             return new ResponseEntity<>(occupation, HttpStatus.OK);
-        } catch (Exception e) {
+        } catch (UserNotFoundException userNotFoundException) {
+            throw userNotFoundException;
+        } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -111,10 +115,10 @@ public class UserController {
         try {
             String uid = userServices.getUserId(userAuth);
             return ResponseEntity.status(HttpStatus.OK).body(uid);
-        } catch (AuthorizationException authorizationException) {
-            throw authorizationException;
-        } catch (ExecutionException | FirebaseAuthException | InterruptedException e) {
-            throw new RuntimeException(e);
+        } catch (FirebaseAuthException | AuthorizationException authorizationException) {
+            throw new AuthorizationException();
+        } catch (ExecutionException | InterruptedException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -123,9 +127,9 @@ public class UserController {
         try {
             String uid = userServices.createUser(user);
             return ResponseEntity.status(HttpStatus.OK).body(uid);
-        } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("");
-        } catch (Exception e) {
+        } catch (FirebaseAuthException | AuthorizationException authorizationException) {
+            throw new AuthorizationException();
+        } catch (ExecutionException | InterruptedException | RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -141,22 +145,24 @@ public class UserController {
     public HttpStatus updateUserProfile(@RequestBody User user, @PathVariable("id") String id) throws ExecutionException, InterruptedException {
         if (userServices.updateUserProfile(user, id))
             return HttpStatus.OK;
-        return HttpStatus.UNAUTHORIZED;
+        throw new AuthorizationException();
     }
 
     @PostMapping(value = "/profile/files/{id}", consumes = {"*/*"})
     public ResponseEntity<String> uploadFile(@RequestBody MultipartFile file, @PathVariable("id") String id) {
         if (userServices.uploadFile(file, id))
             return ResponseEntity.status(HttpStatus.OK).build();
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("");
+        throw new AuthorizationException();
     }
 
     @GetMapping("/profile/avatar/{id}")
     public ResponseEntity<String> showFile(@PathVariable("id") String id) {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(userServices.getFileAccessToken(id));
-        } catch (FirebaseAuthException f) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("");
+        } catch (AuthorizationException authorizationException) {
+            throw authorizationException;
+        } catch (FirebaseAuthException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
