@@ -45,9 +45,6 @@ public class WordlistService {
             wordlists.add(wordlist);
         }
 
-        if (wordlists.isEmpty())
-            throw new UserNotFoundException(userId);
-
         return wordlists;
     }
 
