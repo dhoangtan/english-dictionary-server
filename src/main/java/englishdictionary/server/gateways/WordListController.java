@@ -102,10 +102,10 @@ public class WordListController {
         }
     }
 
-    @PatchMapping("")
-    public HttpStatus renameWordList(@RequestBody RenameWordListDto dto) {
+    @PatchMapping("/name")
+    public HttpStatus renameWordList(@RequestParam("wordlistId") String wordlistId, @RequestParam("name") String name) {
         try {
-            if (wordlistService.renameWordList(dto.getId(), dto.getName()))
+            if (wordlistService.renameWordList(wordlistId, name))
                 return HttpStatus.OK;
             return HttpStatus.BAD_REQUEST;
         } catch (ExecutionException | InterruptedException e) {
