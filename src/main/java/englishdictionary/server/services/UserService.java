@@ -87,6 +87,37 @@ public class UserService {
         }
         return null;
     }
+    public String getGender(String docId) throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("gender").document(docId);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        if(document.exists()){
+            return document.getString("name");
+        }
+        return null;
+    }
+    public String getLevel(String docId) throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("level").document(docId);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        if(document.exists()){
+            return document.getString("name");
+        }
+        return null;
+    }
+    public String getOccupation(String docId) throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("occupation").document(docId);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        if(document.exists()){
+            return document.getString("name");
+        }
+        return null;
+    }
+
     public Long getUserLevel(String id) throws ExecutionException, InterruptedException {
         Firestore dbfirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbfirestore.collection("users").document(id);
