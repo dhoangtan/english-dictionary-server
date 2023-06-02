@@ -122,9 +122,11 @@ public class WordlistService {
         return wordlists;
     }
 
-    public boolean deleteWordlist(String wordlistId) {
+    public boolean deleteWordlist(String wordlistId) throws ExecutionException, InterruptedException{
         firestore = FirestoreClient.getFirestore();
         ApiFuture<WriteResult> writeResult = firestore.collection("word_lists").document(wordlistId).delete();
+        writeResult.get();
+
         return writeResult.isDone();
     }
 
@@ -147,6 +149,7 @@ public class WordlistService {
 
         Map<String, Object> map = wordlist.toHashMap();
         ApiFuture<WriteResult> updateResult = documentReference.update(map);
+        updateResult.get();
 
         return updateResult.isDone();
     }
@@ -158,6 +161,8 @@ public class WordlistService {
             throw new WordlistNotFoundException(wordlistId);
         DocumentReference documentReference = documentSnapshot.getReference();
         ApiFuture<WriteResult> updateResult = documentReference.update("name", name);
+        updateResult.get();
+
         return updateResult.isDone();
     }
 

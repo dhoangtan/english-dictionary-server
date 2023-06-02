@@ -79,8 +79,12 @@ public class WordListController {
 
     @DeleteMapping("/{id}")
     public HttpStatus deleteWordlist(@PathVariable("id") String id) {
-        if (wordlistService.deleteWordlist(id))
-            return HttpStatus.ACCEPTED;
+        try {
+            if (wordlistService.deleteWordlist(id))
+                return HttpStatus.ACCEPTED;
+        } catch (ExecutionException | InterruptedException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         return HttpStatus.BAD_REQUEST;
     }
 
