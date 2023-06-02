@@ -160,7 +160,6 @@ public class UserService {
     }
     public List<String> getAllUserId() throws FirebaseAuthException {
         List<String> userIds = new ArrayList<>();
-
         ListUsersPage page = FirebaseAuth.getInstance().listUsers(null);
         for (UserRecord userRecord : page.iterateAll()) {
             userIds.add(userRecord.getUid());

@@ -36,14 +36,19 @@ public class scheduledTasks {
         System.out.println("Task executed");
     }
     public void notifier(String id) throws ExecutionException, InterruptedException, FirebaseAuthException {
-        Timestamp timestamp = userService.getDate(id);
-        long thresholdSeconds = 60;
-        long currentTimeSeconds = Instant.now().getEpochSecond();
-        long documentTimeSeconds = timestamp.toDate().toInstant().getEpochSecond();
-        long timeDifference = currentTimeSeconds - documentTimeSeconds;
-        if (timeDifference > thresholdSeconds){
-            sendNotification(id);
+        try{
+            Timestamp timestamp = userService.getDate(id);
+            long thresholdSeconds = 60;
+            long currentTimeSeconds = Instant.now().getEpochSecond();
+            long documentTimeSeconds = timestamp.toDate().toInstant().getEpochSecond();
+            long timeDifference = currentTimeSeconds - documentTimeSeconds;
+            if (timeDifference > thresholdSeconds){
+                sendNotification(id);
+            }
+        }catch (NullPointerException ignored){
+
         }
+
     }
 
     public void sendNotification(String id) throws ExecutionException, InterruptedException {
