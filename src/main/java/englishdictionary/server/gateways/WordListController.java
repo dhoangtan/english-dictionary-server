@@ -102,8 +102,8 @@ public class WordListController {
         }
     }
 
-    @PatchMapping("/name")
-    public HttpStatus renameWordList(@RequestParam("wordlistId") String wordlistId, @RequestParam("name") String name) {
+    @PatchMapping("/name/{wordlistId}/{name}")
+    public HttpStatus renameWordList(@PathVariable("wordlistId") String wordlistId, @PathVariable("name") String name) {
         try {
             if (wordlistService.renameWordList(wordlistId, name))
                 return HttpStatus.OK;
