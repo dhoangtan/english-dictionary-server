@@ -1,29 +1,32 @@
 package englishdictionary.server.services;
 
-import com.google.api.client.util.DateTime;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.*;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.ListUsersPage;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
 import englishdictionary.server.models.User;
 import englishdictionary.server.models.UserAuth;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.Date;
+import java.time.Instant;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 @Service
 public class UserService {
+
+
 
     public User getUser(String id) throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
@@ -47,6 +50,9 @@ public class UserService {
         String storedPass = document.getString("password");
         String hashedPass = hashPassword(userAuth.getPassword());
         if (MessageDigest.isEqual(storedPass.getBytes(StandardCharsets.UTF_8), hashedPass.getBytes(StandardCharsets.UTF_8))) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("lastLog", com.google.cloud.Timestamp.now());
+            WriteResult writeResult = documentReference.update(data).get();
             return uid;
         }
         return null;
@@ -126,7 +132,7 @@ public class UserService {
             return null;
         }
     }
-    public String updateUserInfo (UserAuth userAuth, String id) throws FirebaseAuthException, ExecutionException, InterruptedException {
+    public String updateUserInfo (UserAuth userAuth, String id) throws FirebaseAuthException{
         UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(id)
                 .setEmail(userAuth.getEmail())
                 .setPassword(userAuth.getPassword());
@@ -140,18 +146,27 @@ public class UserService {
         collection.get();
         return true;
     }
-    public Timestamp getDate(String userId, String wordListId) throws ExecutionException, InterruptedException {
+
+    public Timestamp getDate(String id) throws ExecutionException, InterruptedException {
         Firestore dbfirestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = dbfirestore.collection("word_lists").document(userId);
+        DocumentReference documentReference = dbfirestore.collection("users").document(id);
         ApiFuture<DocumentSnapshot> future = documentReference.get();
         DocumentSnapshot document = future.get();
         if(document.exists()){
-           return document.getDate("date");
+           Timestamp timestamp = document.getTimestamp("lastLog");
+           return timestamp;
         }
         return null;
     }
-    public Boolean dateThreshold (User user){
-        LocalDate currentDate = LocalDate.now();
-        return true;
+    public List<String> getAllUserId() throws FirebaseAuthException {
+        List<String> userIds = new ArrayList<>();
+
+        ListUsersPage page = FirebaseAuth.getInstance().listUsers(null);
+        for (UserRecord userRecord : page.iterateAll()) {
+            userIds.add(userRecord.getUid());
+        }
+
+        return userIds;
     }
+
 }

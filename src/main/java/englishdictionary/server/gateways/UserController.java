@@ -6,11 +6,14 @@ import englishdictionary.server.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.concurrent.ExecutionException;
 import com.google.firebase.auth.FirebaseAuthException;
+@Component
 @RestController
 @RequestMapping("api/user/")
 public class UserController {
@@ -106,5 +109,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
 }
