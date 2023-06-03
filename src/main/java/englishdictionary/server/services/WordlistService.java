@@ -1,5 +1,6 @@
 package englishdictionary.server.services;
 
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,8 @@ import englishdictionary.server.errors.DuplicateWordlistException;
 import englishdictionary.server.errors.UserNotFoundException;
 import englishdictionary.server.errors.WordNotFoundException;
 import englishdictionary.server.errors.WordlistNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +33,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class WordlistService {
     private Firestore firestore;
+    private Logger logger = LoggerFactory.getLogger(WordlistService.class);
 
     public List<Wordlist> getAllUserWordLists(String userId) throws ExecutionException, InterruptedException {
         firestore = FirestoreClient.getFirestore();
@@ -60,6 +64,9 @@ public class WordlistService {
     }
 
     public Wordlist createWordlist(String wordlistName, String userId) throws ExecutionException, InterruptedException {
+        if (wordlistName == null)
+            throw new InvalidParameterException("Wordlist name cannot be null");
+
         firestore = FirestoreClient.getFirestore();
 
         List<Wordlist> wordlists = getAllUserWordLists(userId);
