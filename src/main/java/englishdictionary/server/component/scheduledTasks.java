@@ -61,7 +61,7 @@ public class scheduledTasks {
 
     public void sendNotification(String id) throws ExecutionException, InterruptedException, MessagingException, UnsupportedEncodingException {
         String userEmail = userService.getUserEmail(id);
-        String subject = "Notification Subject";
+        String subject = "Hi"+ userService.getUserFullname(id)+"! Got 5 minutes? Time for a tiny lesson.";
         String message = "<html><body><h1>It is time for us to get back on track!!!!!</h1></body></html>";
 
         MimeMessage mimeMessage = emailSender.createMimeMessage();
