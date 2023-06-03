@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.Timestamp;
+import com.google.cloud.firestore.*;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.ListUsersPage;
@@ -27,10 +28,6 @@ import englishdictionary.server.errors.UserNotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.WriteResult;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
@@ -40,13 +37,12 @@ import englishdictionary.server.EnglishDictionaryServerApplication;
 
 @Service
 public class UserService {
-
+// ==================UpLoadFile=====================
     public Boolean uploadFile(MultipartFile file, String id) {
         try {
             String bucketName = "englishdictionary-8237a.appspot.com";
             InputStream serviceAccount = EnglishDictionaryServerApplication.class.getResourceAsStream("/service_account_key.json");
-//            String filename = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
-            String filename = id;
+            String filename = id + ".jpg";
 
             Path tempFile = Files.createTempFile(id, filename);
             Files.copy(file.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
@@ -66,7 +62,15 @@ public class UserService {
             return false;
         }
     }
-
+    public String getFileAccessToken(String id) throws FirebaseAuthException {
+        String bucketName = "englishdictionary-8237a.appspot.com";
+        String fullFilePath = "gs://" + bucketName + "/" + id;
+        String token = FirebaseAuth.getInstance().createCustomToken(fullFilePath);
+        String url = "https://firebasestorage.googleapis.com/v0/b/englishdictionary-8237a.appspot.com/o/"+id+".jpg"+"?alt=media&token="+token;
+        return url;
+    }
+//====================================================
+//======================UserProfileInformation==================
     public User getUser(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbFirestore.collection("users").document(userId);
@@ -102,7 +106,6 @@ public class UserService {
 
     public String getUserEmail(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         User user = getUser(userId);
-
         if (user == null) {
             throw new UserNotFoundException(userId);
         }
@@ -111,7 +114,6 @@ public class UserService {
 
     public String getUserFullname(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         User user = getUser(userId);
-
         if (user == null) {
             throw new UserNotFoundException(userId);
         }
@@ -136,18 +138,6 @@ public class UserService {
 
         return user.getGender();
     }
-
-    public String getOccupation(String docId) throws ExecutionException, InterruptedException {
-        Firestore dbfirestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = dbfirestore.collection("occupation").document(docId);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
-        DocumentSnapshot document = future.get();
-        if(document.exists()){
-            return document.getString("name");
-        }
-        return null;
-    }
-
     public Integer getUserOccupation(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         User user = getUser(userId);
 
@@ -156,7 +146,59 @@ public class UserService {
         }
         return user.getOccupation();
     }
+    private String hashPassword(String password) throws RuntimeException {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] encodedHash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(encodedHash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("An unexpected error occurred");
+        }
+    }
+    public Timestamp getDate(String id) throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("users").document(id);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        if(document.exists()){
+            Timestamp timestamp = document.getTimestamp("lastLog");
+            return timestamp;
+        }
+        return null;
+    }
+    public List<String> getAllUserId() throws FirebaseAuthException {
+        List<String> userIds = new ArrayList<>();
+        ListUsersPage page = FirebaseAuth.getInstance().listUsers(null);
+        for (UserRecord userRecord : page.iterateAll()) {
+            userIds.add(userRecord.getUid());
+        }
 
+        return userIds;
+    }
+//===============================================================
+//========================Data===================================
+    public QuerySnapshot getAllOccupation() throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        CollectionReference documentReference = dbfirestore.collection("occupations");
+        ApiFuture<QuerySnapshot> future = documentReference.get();
+        QuerySnapshot document = future.get();
+        return document;
+    }
+    public QuerySnapshot getAllLevel() throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        CollectionReference documentReference = dbfirestore.collection("levels");
+        ApiFuture<QuerySnapshot> future = documentReference.get();
+        QuerySnapshot document = future.get();
+        return document;
+    }
+    public QuerySnapshot getAllGender() throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        CollectionReference documentReference = dbfirestore.collection("genders");
+        ApiFuture<QuerySnapshot> future = documentReference.get();
+        QuerySnapshot document = future.get();
+        return document;
+    }
+//=========================UserAction===============================
     public String createUser(User user) throws FirebaseAuthException, ExecutionException, InterruptedException, RuntimeException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         String hashedPassword = hashPassword(user.getPassword());
@@ -179,17 +221,6 @@ public class UserService {
         WriteResult write = userDocRef.update(data).get();
         return uid;
     }
-
-    private String hashPassword(String password) throws RuntimeException {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] encodedHash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(encodedHash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("An unexpected error occurred");
-        }
-    }
-
     public String updateUserInfo(UserAuth userAuth, String id) throws FirebaseAuthException {
         UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(id)
                 .setEmail(userAuth.getEmail())
@@ -204,33 +235,8 @@ public class UserService {
         collection.get();
         return true;
     }
-    public String getFileAccessToken(String id) throws FirebaseAuthException {
-        String bucketName = "englishdictionary-8237a.appspot.com";
-        String fullFilePath = "gs://" + bucketName + "/" + id;
-        String token = FirebaseAuth.getInstance().createCustomToken(fullFilePath);
-        String url = "https://firebasestorage.googleapis.com/v0/b/englishdictionary-8237a.appspot.com/o/"+id+".jpg"+"?alt=media&token="+token;
-        return url;
-    }
+//=================================================================================================
 
-    public Timestamp getDate(String id) throws ExecutionException, InterruptedException {
-        Firestore dbfirestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = dbfirestore.collection("users").document(id);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
-        DocumentSnapshot document = future.get();
-        if(document.exists()){
-           Timestamp timestamp = document.getTimestamp("lastLog");
-           return timestamp;
-        }
-        return null;
-    }
-    public List<String> getAllUserId() throws FirebaseAuthException {
-        List<String> userIds = new ArrayList<>();
-        ListUsersPage page = FirebaseAuth.getInstance().listUsers(null);
-        for (UserRecord userRecord : page.iterateAll()) {
-            userIds.add(userRecord.getUid());
-        }
 
-        return userIds;
-    }
 
 }
