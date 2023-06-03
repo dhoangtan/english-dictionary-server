@@ -263,16 +263,16 @@ public class UserService {
     }
 //=================================================================================================
 
-    public void updateUserProfileFullName(DocumentReference documentReference, String fullName) {
+    private void updateUserProfileFullName(DocumentReference documentReference, String fullName) {
         documentReference.update("fullName", fullName);
     }
-    public void updateUserProfileGender(DocumentReference documentReference, Integer gender) {
+    private void updateUserProfileGender(DocumentReference documentReference, Integer gender) {
         documentReference.update("gender", gender);
     }
-    public void updateUserProfileLevel(DocumentReference documentReference, Integer level) {
+    private void updateUserProfileLevel(DocumentReference documentReference, Integer level) {
         documentReference.update("level", level);
     }
-    public void updateUserProfileOccupation(DocumentReference documentReference, Integer occupation) {
+    private void updateUserProfileOccupation(DocumentReference documentReference, Integer occupation) {
         documentReference.update("occupation", occupation);
     }
 
