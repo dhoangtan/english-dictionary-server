@@ -13,5 +13,4 @@ public class User {
     private Integer level;
     private Integer occupation;
     private String password;
-    private String lastLog;
 }

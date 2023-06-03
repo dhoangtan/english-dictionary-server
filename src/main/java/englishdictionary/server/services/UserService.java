@@ -151,7 +151,9 @@ public class UserService {
         DocumentReference userDocRef = dbFirestore.collection("users").document(uid);
         ApiFuture<WriteResult> writeResult = userDocRef.set(user);
         writeResult.get();
-
+        Map<String, Object> data = new HashMap<>();
+        data.put("lastLog", com.google.cloud.Timestamp.now());
+        WriteResult write = userDocRef.update(data).get();
         return uid;
     }
     private String hashPassword(String password) {

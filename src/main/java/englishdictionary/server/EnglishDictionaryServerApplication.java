@@ -16,7 +16,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 @SpringBootApplication
-@EnableScheduling
+//@EnableScheduling
 public class EnglishDictionaryServerApplication {
     public static void main(String[] args) throws IOException {
         InputStream serviceAccount = EnglishDictionaryServerApplication.class.getResourceAsStream("/service_account_key.json");
