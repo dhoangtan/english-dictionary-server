@@ -2,6 +2,7 @@ package englishdictionary.server.gateways;
 
 import java.util.concurrent.ExecutionException;
 
+import com.google.cloud.firestore.QuerySnapshot;
 import englishdictionary.server.errors.AuthorizationException;
 import englishdictionary.server.errors.UserNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -166,5 +167,14 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
+    @GetMapping("/gender")
+    public QuerySnapshot getGender(){
+        try{
+            return userServices.getAllGender();
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
