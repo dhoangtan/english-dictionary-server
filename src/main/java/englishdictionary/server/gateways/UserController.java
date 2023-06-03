@@ -4,6 +4,10 @@ import java.util.concurrent.ExecutionException;
 
 import englishdictionary.server.errors.AuthorizationException;
 import englishdictionary.server.errors.UserNotFoundException;
+import englishdictionary.server.utils.ControllerUtilities;
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,13 +32,16 @@ import org.springframework.stereotype.Component;
 public class UserController {
 
     private final UserService userServices;
+    private final ControllerUtilities utilFuncs;
+    private final Logger logger = LoggerFactory.getLogger(UserController.class);
 
-    public UserController(UserService userServices) {
+    public UserController(UserService userServices, ControllerUtilities controllerUtilities) {
+        utilFuncs = controllerUtilities;
         this.userServices = userServices;
     }
 
     @GetMapping("/{id}/profile")
-    public ResponseEntity<User> getUser(@PathVariable("id") String id) {
+    public ResponseEntity<User> getUser(@PathVariable("id") String id, HttpServletRequest request) {
         try {
             User user = userServices.getUser(id);
             return new ResponseEntity<>(user, HttpStatus.OK);
