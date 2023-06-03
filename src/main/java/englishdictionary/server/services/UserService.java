@@ -2,6 +2,7 @@ package englishdictionary.server.services;
 
 import java.io.IOException;
 import java.io.InputStream;
+
 import com.google.api.core.ApiFuture;
 import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.*;
@@ -37,39 +38,36 @@ import englishdictionary.server.EnglishDictionaryServerApplication;
 
 @Service
 public class UserService {
-// ==================UpLoadFile=====================
-    public Boolean uploadFile(MultipartFile file, String id) {
-        try {
-            String bucketName = "englishdictionary-8237a.appspot.com";
-            InputStream serviceAccount = EnglishDictionaryServerApplication.class.getResourceAsStream("/service_account_key.json");
-            String filename = id + ".jpg";
+    // ==================UpLoadFile=====================
+    public Boolean uploadFile(MultipartFile file, String id) throws IOException {
+        String bucketName = "englishdictionary-8237a.appspot.com";
+        InputStream serviceAccount = EnglishDictionaryServerApplication.class.getResourceAsStream("/service_account_key.json");
+        String filename = id + ".jpg";
 
-            Path tempFile = Files.createTempFile(id, filename);
-            Files.copy(file.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
+        Path tempFile = Files.createTempFile(id, filename);
+        Files.copy(file.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
 
-            StorageOptions options = StorageOptions.newBuilder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .build();
-            Storage storage = options.getService();
-            BlobId blobId = BlobId.of(bucketName, filename);
-            BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
-            storage.create(blobInfo, Files.readAllBytes(tempFile));
-            Files.delete(tempFile);
+        StorageOptions options = StorageOptions.newBuilder()
+                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                .build();
+        Storage storage = options.getService();
+        BlobId blobId = BlobId.of(bucketName, filename);
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
+        storage.create(blobInfo, Files.readAllBytes(tempFile));
+        Files.delete(tempFile);
 
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
+        return true;
     }
+
     public String getFileAccessToken(String id) throws FirebaseAuthException {
         String bucketName = "englishdictionary-8237a.appspot.com";
         String fullFilePath = "gs://" + bucketName + "/" + id;
         String token = FirebaseAuth.getInstance().createCustomToken(fullFilePath);
-        String url = "https://firebasestorage.googleapis.com/v0/b/englishdictionary-8237a.appspot.com/o/"+id+".jpg"+"?alt=media&token="+token;
+        String url = "https://firebasestorage.googleapis.com/v0/b/englishdictionary-8237a.appspot.com/o/" + id + ".jpg" + "?alt=media&token=" + token;
         return url;
     }
-//====================================================
+
+    //====================================================
 //======================UserProfileInformation==================
     public User getUser(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
@@ -138,6 +136,7 @@ public class UserService {
 
         return user.getGender();
     }
+
     public Integer getUserOccupation(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         User user = getUser(userId);
 
@@ -146,6 +145,7 @@ public class UserService {
         }
         return user.getOccupation();
     }
+
     private String hashPassword(String password) throws RuntimeException {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -155,17 +155,19 @@ public class UserService {
             throw new RuntimeException("An unexpected error occurred");
         }
     }
+
     public Timestamp getDate(String id) throws ExecutionException, InterruptedException {
         Firestore dbfirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbfirestore.collection("users").document(id);
         ApiFuture<DocumentSnapshot> future = documentReference.get();
         DocumentSnapshot document = future.get();
-        if(document.exists()){
+        if (document.exists()) {
             Timestamp timestamp = document.getTimestamp("lastLog");
             return timestamp;
         }
         return null;
     }
+
     public List<String> getAllUserId() throws FirebaseAuthException {
         List<String> userIds = new ArrayList<>();
         ListUsersPage page = FirebaseAuth.getInstance().listUsers(null);
@@ -175,7 +177,8 @@ public class UserService {
 
         return userIds;
     }
-//===============================================================
+
+    //===============================================================
 //========================Data===================================
     public QuerySnapshot getAllOccupation() throws ExecutionException, InterruptedException {
         Firestore dbfirestore = FirestoreClient.getFirestore();
@@ -184,6 +187,7 @@ public class UserService {
         QuerySnapshot document = future.get();
         return document;
     }
+
     public QuerySnapshot getAllLevel() throws ExecutionException, InterruptedException {
         Firestore dbfirestore = FirestoreClient.getFirestore();
         CollectionReference documentReference = dbfirestore.collection("levels");
@@ -191,6 +195,7 @@ public class UserService {
         QuerySnapshot document = future.get();
         return document;
     }
+
     public QuerySnapshot getAllGender() throws ExecutionException, InterruptedException {
         Firestore dbfirestore = FirestoreClient.getFirestore();
         CollectionReference documentReference = dbfirestore.collection("genders");
@@ -198,7 +203,8 @@ public class UserService {
         QuerySnapshot document = future.get();
         return document;
     }
-//=========================UserAction===============================
+
+    //=========================UserAction===============================
     public String createUser(User user) throws FirebaseAuthException, ExecutionException, InterruptedException, RuntimeException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         String hashedPassword = hashPassword(user.getPassword());
@@ -221,6 +227,7 @@ public class UserService {
         WriteResult write = userDocRef.update(data).get();
         return uid;
     }
+
     public String updateUserInfo(UserAuth userAuth, String id) throws FirebaseAuthException {
         UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(id)
                 .setEmail(userAuth.getEmail())
@@ -236,7 +243,6 @@ public class UserService {
         return true;
     }
 //=================================================================================================
-
 
 
 }

@@ -1,5 +1,6 @@
 package englishdictionary.server.errors_handlers;
 
+import com.google.firebase.auth.FirebaseAuthException;
 import englishdictionary.server.errors.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({
             AuthorizationException.class,
+            FirebaseAuthException.class
     })
     public ResponseEntity<String> handleUnauthorizedException(AuthorizationException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
