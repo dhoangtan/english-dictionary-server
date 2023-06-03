@@ -46,6 +46,7 @@ public class WordListController {
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(wordLists, HttpStatus.OK);
         } catch (ExecutionException | InterruptedException e) {
+            logger.error("Error when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -64,6 +65,7 @@ public class WordListController {
             throw wordlistNotFoundException;
         }
         catch (ExecutionException | InterruptedException e) {
+            logger.error("Error when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -76,7 +78,13 @@ public class WordListController {
             List<Wordlist> result = wordlistService.searchForWordlist(name, word);
             logger.info(prompt + " - Completed");
             return result;
-        } catch (ExecutionException | InterruptedException e) {
+        }
+        catch (WordNotFoundException | WordlistNotFoundException notFoundException) {
+            logger.error("Error occurred when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Not exists");
+            throw notFoundException;
+        }
+        catch (ExecutionException | InterruptedException e) {
+            logger.error("Error when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -99,6 +107,7 @@ public class WordListController {
             throw notFoundException;
         }
         catch (ExecutionException | InterruptedException e) {
+            logger.error("Error when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -121,6 +130,7 @@ public class WordListController {
             throw invalidParameterException;
         }
         catch (ExecutionException | InterruptedException e) {
+            logger.error("Error when creating resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -136,6 +146,7 @@ public class WordListController {
             }
         }
         catch (ExecutionException | InterruptedException e) {
+            logger.error("Error when deleting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         logger.error("Error when deleting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution interrupted");
@@ -178,7 +189,7 @@ public class WordListController {
             logger.error("Error when changing resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution interrupted");
             return HttpStatus.BAD_REQUEST;
         } catch (ExecutionException | InterruptedException e) {
-            logger.error("Error when deleting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
+            logger.error("Error when changing resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -192,10 +203,10 @@ public class WordListController {
                 logger.info(prompt + " - Completed");
                 return HttpStatus.CREATED;
             }
-            logger.error("Error when changing resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution interrupted");
+            logger.error("Error when adding resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution interrupted");
             return HttpStatus.BAD_REQUEST;
         } catch (ExecutionException | InterruptedException e) {
-            logger.error("Error when deleting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
+            logger.error("Error when adding resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

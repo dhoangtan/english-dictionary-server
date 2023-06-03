@@ -12,7 +12,6 @@ public class Wordlist {
     private String wordlistId;
     private String name;
     private String userId;
-    private LocalDate date;
     private List<Word> words;
 
     public Map<String, Object> toHashMap() {
