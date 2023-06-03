@@ -243,17 +243,37 @@ public class UserService {
         DocumentSnapshot documentSnapshot = dbFirestore.collection("users").document("id").get().get();
         if (!documentSnapshot.exists())
             throw new UserNotFoundException(id);
+
         DocumentReference documentReference = documentSnapshot.getReference();
-        ApiFuture<WriteResult> updateResult = documentReference.update(
-                "fullName", user.getFullName(),
-                "gender", user.getGender(),
-                "level", user.getLevel(),
-                "occupation", user.getOccupation()
-                );
-        updateResult.get();
+        String fullName = user.getFullName();
+        Integer gender = user.getGender();
+        Integer level = user.getLevel();
+        Integer occupation = user.getOccupation();
+
+        if (fullName != null)
+            updateUserProfileFullName(documentReference, fullName);
+        if (gender != null)
+            updateUserProfileGender(documentReference, gender);
+        if (level != null)
+            updateUserProfileLevel(documentReference, level);
+        if (occupation != null)
+            updateUserProfileOccupation(documentReference, occupation);
+
         return true;
     }
 //=================================================================================================
 
+    public void updateUserProfileFullName(DocumentReference documentReference, String fullName) {
+        documentReference.update("fullName", fullName);
+    }
+    public void updateUserProfileGender(DocumentReference documentReference, Integer gender) {
+        documentReference.update("gender", gender);
+    }
+    public void updateUserProfileLevel(DocumentReference documentReference, Integer level) {
+        documentReference.update("level", level);
+    }
+    public void updateUserProfileOccupation(DocumentReference documentReference, Integer occupation) {
+        documentReference.update("occupation", occupation);
+    }
 
 }
