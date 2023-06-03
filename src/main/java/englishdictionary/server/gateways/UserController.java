@@ -21,7 +21,8 @@ import com.google.firebase.auth.FirebaseAuthException;
 import englishdictionary.server.models.User;
 import englishdictionary.server.models.UserAuth;
 import englishdictionary.server.services.UserService;
-
+import org.springframework.stereotype.Component;
+@Component
 @RestController
 @RequestMapping("api/user/")
 public class UserController {
@@ -165,4 +166,5 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 }

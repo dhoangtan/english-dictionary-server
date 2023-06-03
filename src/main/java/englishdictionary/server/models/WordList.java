@@ -1,8 +1,8 @@
 package englishdictionary.server.models;
 
 import lombok.Data;
-import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +12,7 @@ public class Wordlist {
     private String wordlistId;
     private String name;
     private String userId;
+    private LocalDate date;
     private List<Word> words;
 
     public Map<String, Object> toHashMap() {

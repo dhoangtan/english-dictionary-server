@@ -2,21 +2,30 @@ package englishdictionary.server.services;
 
 import java.io.IOException;
 import java.io.InputStream;
+import com.google.api.core.ApiFuture;
+import com.google.cloud.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.ListUsersPage;
+import com.google.firebase.auth.UserRecord;
+import com.google.firebase.cloud.FirestoreClient;
+import englishdictionary.server.models.User;
+import englishdictionary.server.models.UserAuth;
+import org.springframework.stereotype.Service;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import englishdictionary.server.errors.AuthorizationException;
 import englishdictionary.server.errors.UserNotFoundException;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
@@ -26,14 +35,8 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.UserRecord;
-import com.google.firebase.cloud.FirestoreClient;
 
 import englishdictionary.server.EnglishDictionaryServerApplication;
-import englishdictionary.server.models.User;
-import englishdictionary.server.models.UserAuth;
 
 @Service
 public class UserService {
@@ -89,6 +92,9 @@ public class UserService {
         String storedPass = document.getString("password");
         String hashedPass = hashPassword(userAuth.getPassword());
         if (MessageDigest.isEqual(storedPass.getBytes(StandardCharsets.UTF_8), hashedPass.getBytes(StandardCharsets.UTF_8))) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("lastLog", com.google.cloud.Timestamp.now());
+            WriteResult writeResult = documentReference.update(data).get();
             return uid;
         }
         throw new AuthorizationException();
@@ -127,7 +133,19 @@ public class UserService {
         if (user == null) {
             throw new UserNotFoundException(userId);
         }
-        return user.getLevel();
+
+        return user.getGender();
+    }
+
+    public String getOccupation(String docId) throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("occupation").document(docId);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        if(document.exists()){
+            return document.getString("name");
+        }
+        return null;
     }
 
     public Integer getUserOccupation(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
@@ -156,6 +174,9 @@ public class UserService {
         if (!writeResult.isDone())
             throw new RuntimeException("An unexpected error occurred");
 
+        Map<String, Object> data = new HashMap<>();
+        data.put("lastLog", com.google.cloud.Timestamp.now());
+        WriteResult write = userDocRef.update(data).get();
         return uid;
     }
 
@@ -190,4 +211,26 @@ public class UserService {
         String url = "https://firebasestorage.googleapis.com/v0/b/englishdictionary-8237a.appspot.com/o/"+id+".jpg"+"?alt=media&token="+token;
         return url;
     }
+
+    public Timestamp getDate(String id) throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("users").document(id);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        if(document.exists()){
+           Timestamp timestamp = document.getTimestamp("lastLog");
+           return timestamp;
+        }
+        return null;
+    }
+    public List<String> getAllUserId() throws FirebaseAuthException {
+        List<String> userIds = new ArrayList<>();
+        ListUsersPage page = FirebaseAuth.getInstance().listUsers(null);
+        for (UserRecord userRecord : page.iterateAll()) {
+            userIds.add(userRecord.getUid());
+        }
+
+        return userIds;
+    }
+
 }
