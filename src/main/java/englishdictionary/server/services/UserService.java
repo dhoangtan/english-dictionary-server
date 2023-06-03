@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.ListUsersPage;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
+import englishdictionary.server.errors.WordlistNotFoundException;
 import englishdictionary.server.models.User;
 import englishdictionary.server.models.UserAuth;
 import org.springframework.stereotype.Service;
@@ -237,9 +238,19 @@ public class UserService {
     }
 
     public Boolean updateUserProfile(User user, String id) throws ExecutionException, InterruptedException {
+
         Firestore dbFirestore = FirestoreClient.getFirestore();
-        ApiFuture<WriteResult> collection = dbFirestore.collection("users").document(id).set(user);
-        collection.get();
+        DocumentSnapshot documentSnapshot = dbFirestore.collection("users").document("id").get().get();
+        if (!documentSnapshot.exists())
+            throw new UserNotFoundException(id);
+        DocumentReference documentReference = documentSnapshot.getReference();
+        ApiFuture<WriteResult> updateResult = documentReference.update(
+                "fullName", user.getFullName(),
+                "gender", user.getGender(),
+                "level", user.getLevel(),
+                "occupation", user.getOccupation()
+                );
+        updateResult.get();
         return true;
     }
 //=================================================================================================
