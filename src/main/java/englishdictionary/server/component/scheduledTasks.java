@@ -36,7 +36,14 @@ public class scheduledTasks {
     public void runTask() throws ExecutionException, InterruptedException, FirebaseAuthException, MessagingException {
         List<String> userIds = userService.getAllUserId();
         for (String userId : userIds) {
-            notifier(userId);
+            try {
+                if(userService.getUserNotify(userId)){
+                    notifier(userId);
+                    System.out.println("Message Sent For "+userService.getUserEmail(userId));
+                }
+            }catch (NullPointerException e){
+                System.out.println("Task Fail at "+ userIds + "-Notify is null");
+            }
         }
         System.out.println("Task executed");
     }
@@ -47,7 +54,7 @@ public class scheduledTasks {
             long currentTimeSeconds = Instant.now().getEpochSecond();
             long documentTimeSeconds = timestamp.toDate().toInstant().getEpochSecond();
             long timeDifference = currentTimeSeconds - documentTimeSeconds;
-            if (true) {
+            if (timeDifference > thresholdSeconds) {
                 sendNotification(id);
 
             }
@@ -61,7 +68,7 @@ public class scheduledTasks {
 
     public void sendNotification(String id) throws ExecutionException, InterruptedException, MessagingException, UnsupportedEncodingException {
         String userEmail = userService.getUserEmail(id);
-        String subject = "Hi"+ userService.getUserFullname(id)+"! Got 5 minutes? Time for a tiny lesson.";
+        String subject = "Hi "+ userService.getUserFullname(id)+"! Got 5 minutes? Time for a tiny lesson.";
         String message = "<html><body><h1>It is time for us to get back on track!!!!!</h1></body></html>";
 
         MimeMessage mimeMessage = emailSender.createMimeMessage();
@@ -73,6 +80,5 @@ public class scheduledTasks {
         messageHelper.setFrom(new InternetAddress("veedkhoa@gmail.com", "Dictionyari"));
 
         emailSender.send(mimeMessage);
-        System.out.println(userEmail+"-Message Sent");
     }
 }

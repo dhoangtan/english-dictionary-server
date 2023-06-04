@@ -287,4 +287,21 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    @GetMapping("/{id}/profile/notify")
+    public ResponseEntity<Boolean> getUserNotifyOption(@PathVariable("id") String id){
+        try{
+            return ResponseEntity.ok(userServices.getUserNotify(id));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    @PostMapping("/{id}/profile/notify")
+    public ResponseEntity<Boolean> updateUserNotifyOption(@PathVariable("id") String id){
+        try{
+            return ResponseEntity.ok(userServices.updateNotify(id));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

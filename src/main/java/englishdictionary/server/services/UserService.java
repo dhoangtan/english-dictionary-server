@@ -128,6 +128,24 @@ public class UserService {
         return user.getGender();
     }
 
+    public Boolean getUserNotify(String id) throws ExecutionException, InterruptedException, UserNotFoundException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("users").document(id);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        if (document.exists()) {
+            Boolean notify = document.getBoolean("notify");
+            return notify;
+        }
+        return false;
+    }
+    public Boolean updateNotify(String id) throws ExecutionException, InterruptedException {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbFirestore.collection("users").document(id);
+        Boolean updatedNotify = !getUserNotify(id);
+        WriteResult write = documentReference.update("notify", updatedNotify).get();
+        return updatedNotify;
+    }
     public Integer getUserLevel(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         User user = getUser(userId);
 
@@ -243,9 +261,9 @@ public class UserService {
 
         if (!writeResult.isDone())
             throw new RuntimeException("An unexpected error occurred");
-
         Map<String, Object> data = new HashMap<>();
         data.put("lastLog", com.google.cloud.Timestamp.now());
+        data.put("notify", true);
         WriteResult write = userDocRef.update(data).get();
         return uid;
     }
