@@ -181,28 +181,49 @@ public class UserService {
 
     //===============================================================
 //========================Data===================================
-    public QuerySnapshot getAllOccupation() throws ExecutionException, InterruptedException {
-        Firestore dbfirestore = FirestoreClient.getFirestore();
-        CollectionReference documentReference = dbfirestore.collection("occupations");
-        ApiFuture<QuerySnapshot> future = documentReference.get();
-        QuerySnapshot document = future.get();
-        return document;
+    public Map<String, String> getAllOccupation() throws ExecutionException, InterruptedException {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        CollectionReference gendersCollection = dbFirestore.collection("occupations");
+        ApiFuture<QuerySnapshot> future = gendersCollection.get();
+        QuerySnapshot querySnapshot = future.get();
+
+        Map<String, String> occupationMap = new HashMap<>();
+        for (QueryDocumentSnapshot document : querySnapshot.getDocuments()) {
+            String docId = document.getId();
+            String gender = document.getString("name");
+            occupationMap.put(docId, gender);
+        }
+        return occupationMap;
     }
 
-    public QuerySnapshot getAllLevel() throws ExecutionException, InterruptedException {
-        Firestore dbfirestore = FirestoreClient.getFirestore();
-        CollectionReference documentReference = dbfirestore.collection("levels");
-        ApiFuture<QuerySnapshot> future = documentReference.get();
-        QuerySnapshot document = future.get();
-        return document;
+    public Map<String, String> getAllLevel() throws ExecutionException, InterruptedException {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        CollectionReference gendersCollection = dbFirestore.collection("genders");
+        ApiFuture<QuerySnapshot> future = gendersCollection.get();
+        QuerySnapshot querySnapshot = future.get();
+
+        Map<String, String> levelMap = new HashMap<>();
+        for (QueryDocumentSnapshot document : querySnapshot.getDocuments()) {
+            String docId = document.getId();
+            String gender = document.getString("name");
+            levelMap.put(docId, gender);
+        }
+        return levelMap;
     }
 
-    public QuerySnapshot getAllGender() throws ExecutionException, InterruptedException {
-        Firestore dbfirestore = FirestoreClient.getFirestore();
-        CollectionReference documentReference = dbfirestore.collection("genders");
-        ApiFuture<QuerySnapshot> future = documentReference.get();
-        QuerySnapshot document = future.get();
-        return document;
+    public Map<String, String> getAllGender() throws ExecutionException, InterruptedException {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        CollectionReference gendersCollection = dbFirestore.collection("genders");
+        ApiFuture<QuerySnapshot> future = gendersCollection.get();
+        QuerySnapshot querySnapshot = future.get();
+
+        Map<String, String> genderMap = new HashMap<>();
+        for (QueryDocumentSnapshot document : querySnapshot.getDocuments()) {
+            String docId = document.getId();
+            String gender = document.getString("name");
+            genderMap.put(docId, gender);
+        }
+        return genderMap;
     }
 
     //=========================UserAction===============================

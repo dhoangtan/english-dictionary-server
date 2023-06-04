@@ -70,7 +70,7 @@ public class scheduledTasks {
         messageHelper.setTo(userEmail);
         messageHelper.setSubject(subject);
         messageHelper.setText(message, true );
-        messageHelper.setFrom(new InternetAddress("veedkhoa@gmail.com", "TrioLingo"));
+        messageHelper.setFrom(new InternetAddress("veedkhoa@gmail.com", "Dictionyari"));
 
         emailSender.send(mimeMessage);
         System.out.println(userEmail+"-Message Sent");

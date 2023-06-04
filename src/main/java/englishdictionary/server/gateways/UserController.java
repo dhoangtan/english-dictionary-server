@@ -1,6 +1,7 @@
 package englishdictionary.server.gateways;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import com.google.cloud.firestore.QuerySnapshot;
@@ -260,13 +261,30 @@ public class UserController {
         }
     }
     @GetMapping("/gender")
-    public QuerySnapshot getGender(){
+    public ResponseEntity<Map<String, String>> getGender(){
         try{
-            return userServices.getAllGender();
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            Map<String, String> genderMap = userServices.getAllGender();
+            return ResponseEntity.ok(genderMap);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    @GetMapping("/occupation")
+    public ResponseEntity<Map<String, String>> getOccupation(){
+        try{
+            Map<String, String> genderMap = userServices.getAllOccupation();
+            return ResponseEntity.ok(genderMap);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    @GetMapping("/level")
+    public ResponseEntity<Map<String, String>> getLevel(){
+        try{
+            Map<String, String> genderMap = userServices.getAllLevel();
+            return ResponseEntity.ok(genderMap);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
