@@ -33,7 +33,6 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class WordlistService {
     private Firestore firestore;
-    private Logger logger = LoggerFactory.getLogger(WordlistService.class);
 
     public List<Wordlist> getAllUserWordLists(String userId) throws ExecutionException, InterruptedException {
         firestore = FirestoreClient.getFirestore();
