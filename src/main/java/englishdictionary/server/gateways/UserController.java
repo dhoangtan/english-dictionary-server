@@ -35,7 +35,6 @@ import org.springframework.web.server.handler.ResponseStatusExceptionHandler;
 @RestController
 @RequestMapping("api/user/")
 public class UserController {
-
     private final UserService userServices;
     private final ControllerUtilities utilFuncs;
     private final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -206,7 +205,7 @@ public class UserController {
             logger.error("An error occurred when getting resource " + resource + " - Unauthorized" );
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
-        catch (FirebaseAuthException e) {
+        catch (FirebaseAuthException | ExecutionException | InterruptedException e) {
             logger.error("An error occurred when getting resource " + resource + " - Unauthorized - \n Error message: \n" + e.getMessage());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
@@ -304,4 +303,5 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 }
