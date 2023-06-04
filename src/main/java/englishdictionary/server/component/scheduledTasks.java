@@ -7,6 +7,8 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.cloud.FirestoreClient;
+import englishdictionary.server.models.User;
+import englishdictionary.server.services.AdminService;
 import englishdictionary.server.services.UserService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
@@ -26,15 +28,16 @@ import java.util.concurrent.ExecutionException;
 @Component
 public class scheduledTasks {
     @Autowired
+    private AdminService adminService;
+    @Autowired
     private UserService userService;
-
     @Autowired
     private JavaMailSender emailSender;
     final int oneDay = 24 * 60 * 60 * 1000;
 
     @Scheduled(fixedRate = oneDay)
     public void runTask() throws ExecutionException, InterruptedException, FirebaseAuthException, MessagingException {
-        List<String> userIds = userService.getAllUserId();
+        List<String> userIds = adminService.getAllUserId();
         for (String userId : userIds) {
             try {
                 if(userService.getUserNotify(userId)){

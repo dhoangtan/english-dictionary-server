@@ -97,6 +97,7 @@ public class UserService {
         if (MessageDigest.isEqual(storedPass.getBytes(StandardCharsets.UTF_8), hashedPass.getBytes(StandardCharsets.UTF_8))) {
             Map<String, Object> data = new HashMap<>();
             data.put("lastLog", com.google.cloud.Timestamp.now());
+            data.put("active", true);
             WriteResult writeResult = documentReference.update(data).get();
             return uid;
         }
@@ -135,6 +136,17 @@ public class UserService {
         DocumentSnapshot document = future.get();
         if (document.exists()) {
             Boolean notify = document.getBoolean("notify");
+            return notify;
+        }
+        return false;
+    }
+    public Boolean isUserActive(String id) throws ExecutionException, InterruptedException {
+        Firestore dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("users").document(id);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        if (document.exists()) {
+            Boolean notify = document.getBoolean("active");
             return notify;
         }
         return false;
@@ -187,15 +199,7 @@ public class UserService {
         return null;
     }
 
-    public List<String> getAllUserId() throws FirebaseAuthException {
-        List<String> userIds = new ArrayList<>();
-        ListUsersPage page = FirebaseAuth.getInstance().listUsers(null);
-        for (UserRecord userRecord : page.iterateAll()) {
-            userIds.add(userRecord.getUid());
-        }
 
-        return userIds;
-    }
 
     //===============================================================
 //========================Data===================================
@@ -264,22 +268,27 @@ public class UserService {
         Map<String, Object> data = new HashMap<>();
         data.put("lastLog", com.google.cloud.Timestamp.now());
         data.put("notify", true);
+        data.put("active", true);
         WriteResult write = userDocRef.update(data).get();
         return uid;
     }
 
-    public String updateUserInfo(UserAuth userAuth, String id) throws FirebaseAuthException {
+    public String updateUserInfo(UserAuth userAuth, String id) throws FirebaseAuthException, ExecutionException, InterruptedException {
         UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(id)
                 .setEmail(userAuth.getEmail())
                 .setPassword(userAuth.getPassword());
         UserRecord userRecord = FirebaseAuth.getInstance().updateUser(request);
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbFirestore.collection("users").document(id);
+        documentReference.update("email", userAuth.getEmail());
+        documentReference.update("password", hashPassword(userAuth.getPassword()));
         return userRecord.getUid();
     }
 
     public Boolean updateUserProfile(User user, String id) throws ExecutionException, InterruptedException {
 
         Firestore dbFirestore = FirestoreClient.getFirestore();
-        DocumentSnapshot documentSnapshot = dbFirestore.collection("users").document("id").get().get();
+        DocumentSnapshot documentSnapshot = dbFirestore.collection("users").document(id).get().get();
         if (!documentSnapshot.exists())
             throw new UserNotFoundException(id);
 
@@ -300,7 +309,7 @@ public class UserService {
 
         return true;
     }
-//=================================================================================================
+
 
     private void updateUserProfileFullName(DocumentReference documentReference, String fullName) {
         documentReference.update("fullName", fullName);
@@ -314,5 +323,6 @@ public class UserService {
     private void updateUserProfileOccupation(DocumentReference documentReference, Integer occupation) {
         documentReference.update("occupation", occupation);
     }
+//=================================================================================================
 
 }
