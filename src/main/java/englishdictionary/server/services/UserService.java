@@ -220,7 +220,7 @@ public class UserService {
 
     public Map<String, String> getAllLevel() throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
-        CollectionReference gendersCollection = dbFirestore.collection("genders");
+        CollectionReference gendersCollection = dbFirestore.collection("levels");
         ApiFuture<QuerySnapshot> future = gendersCollection.get();
         QuerySnapshot querySnapshot = future.get();
 
