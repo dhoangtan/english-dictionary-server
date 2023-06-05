@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ControllerUtilities {
-
     public String getCurrentResourcePath(HttpServletRequest request) {
         return "[" + request.getServletPath() + "] - [" + request.getMethod() + "]";
     }

@@ -22,38 +22,63 @@ public class AdminService {
     @Autowired
     private UserService userService;
     //=======================================Admin Action==========================================================
-    public void editGender(String content, String docId){
-        try {
-            Firestore dbFirestore = FirestoreClient.getFirestore();
-            DocumentReference documentRef = dbFirestore.collection("genders").document(docId);
-            DocumentSnapshot documentSnapshot = documentRef.get().get();
+    public void editGender(String content, String docId) throws ExecutionException, InterruptedException {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        DocumentReference documentRef = dbFirestore.collection("genders").document(docId);
+        DocumentSnapshot documentSnapshot = documentRef.get().get();
 
-            if (!documentSnapshot.exists()) {
-                documentRef.set(Collections.singletonMap("name", content));
-            } else {
-                documentRef.update("name", content);
-            }
-        }catch(Exception e){
-            e.printStackTrace();
+        if (!documentSnapshot.exists()) {
+            documentRef.set(Collections.singletonMap("name", content));
+        } else {
+            documentRef.update("name", content);
         }
     }
+    public void editLevel(String content, String docId) throws ExecutionException, InterruptedException {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        DocumentReference documentRef = dbFirestore.collection("levels").document(docId);
+        DocumentSnapshot documentSnapshot = documentRef.get().get();
+
+        if (!documentSnapshot.exists()) {
+            documentRef.set(Collections.singletonMap("name", content));
+        } else {
+            documentRef.update("name", content);
+        }
+    }
+    public void editOccupation(String content, String docId) throws ExecutionException, InterruptedException {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        DocumentReference documentRef = dbFirestore.collection("occupations").document(docId);
+        DocumentSnapshot documentSnapshot = documentRef.get().get();
+
+        if (!documentSnapshot.exists()) {
+            documentRef.set(Collections.singletonMap("name", content));
+        } else {
+            documentRef.update("name", content);
+        }
+    }
+
     public List<String> getAllUserId() throws FirebaseAuthException {
         List<String> userIds = new ArrayList<>();
         ListUsersPage page = FirebaseAuth.getInstance().listUsers(null);
         for (UserRecord userRecord : page.iterateAll()) {
             userIds.add(userRecord.getUid());
         }
-
         return userIds;
     }
+
     public void deleteGender(String docId){
-        try {
-            Firestore dbFirestore = FirestoreClient.getFirestore();
-            DocumentReference documentRef = dbFirestore.collection("genders").document(docId);
-            documentRef.delete();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        DocumentReference documentRef = dbFirestore.collection("genders").document(docId);
+        documentRef.delete();
+    }
+    public void deleteLevel(String docId){
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        DocumentReference documentRef = dbFirestore.collection("levels").document(docId);
+        documentRef.delete();
+    }
+    public void deleteOccupation(String docId){
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        DocumentReference documentRef = dbFirestore.collection("occupations").document(docId);
+        documentRef.delete();
     }
     public void deleteUser(String id) throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
