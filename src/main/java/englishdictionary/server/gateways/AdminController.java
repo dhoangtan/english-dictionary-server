@@ -1,5 +1,7 @@
 package englishdictionary.server.gateways;
 
+import com.google.api.gax.rpc.NotFoundException;
+import englishdictionary.server.errors.UserNotFoundException;
 import englishdictionary.server.services.AdminService;
 import englishdictionary.server.utils.ControllerUtilities;
 import jakarta.servlet.http.HttpServletRequest;
@@ -121,7 +123,11 @@ public class AdminController {
             logger.info(prompt);
             adminService.deleteUser(id);
             return ResponseEntity.ok().build();
-        }catch (Exception e){
+        }catch(NotFoundException notFoundException){
+            logger.error("An error occurred when editing resource " + resource + " - Error - \n Error message:\n" + notFoundException.getMessage());
+            throw notFoundException;
+        }
+        catch (Exception e){
             logger.error("An error occurred when getting resource " + resource + " - Error - \n Error message:\n" + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

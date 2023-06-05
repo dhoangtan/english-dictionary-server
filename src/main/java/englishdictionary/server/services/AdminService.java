@@ -1,5 +1,6 @@
 package englishdictionary.server.services;
 
+import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
@@ -9,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.ListUsersPage;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
+import englishdictionary.server.errors.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -80,7 +82,7 @@ public class AdminService {
         DocumentReference documentRef = dbFirestore.collection("occupations").document(docId);
         documentRef.delete();
     }
-    public void deleteUser(String id) throws ExecutionException, InterruptedException {
+    public void deleteUser(String id) throws ExecutionException, InterruptedException, NotFoundException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbFirestore.collection("users").document(id);
         Boolean active = userService.isUserActive(id);
