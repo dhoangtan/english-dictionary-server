@@ -4,12 +4,15 @@ import com.google.firebase.auth.FirebaseAuthException;
 import englishdictionary.server.errors.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-@RestControllerAdvice
+import java.util.concurrent.ExecutionException;
+
+@ControllerAdvice
 public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({
@@ -23,6 +26,7 @@ public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler({
+            UserDisableException.class,
             AuthorizationException.class,
             FirebaseAuthException.class
     })
@@ -37,10 +41,10 @@ public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleSystemException(Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(500).body("Internal Server Error");
-    }
+//    @ExceptionHandler({ExecutionException.class, InterruptedException.class})
+//    public ResponseEntity<String> handleSystemException(Exception e) {
+//        e.printStackTrace();
+//        return ResponseEntity.status(500).body("Internal Server Error");
+//    }
 
 }

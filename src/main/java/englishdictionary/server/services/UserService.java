@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.ListUsersPage;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
+import englishdictionary.server.errors.UserDisableException;
 import englishdictionary.server.errors.WordlistNotFoundException;
 import englishdictionary.server.models.User;
 import englishdictionary.server.models.UserAuth;
@@ -83,7 +84,7 @@ public class UserService {
         return user;
     }
 
-    public String getUserId(UserAuth userAuth) throws FirebaseAuthException, ExecutionException, InterruptedException, AuthorizationException {
+    public String getUserId(UserAuth userAuth) throws FirebaseAuthException, ExecutionException, InterruptedException, AuthorizationException, UserDisableException{
         UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(userAuth.getEmail());
         if (userRecord == null)
             throw new AuthorizationException();
@@ -94,10 +95,15 @@ public class UserService {
         DocumentSnapshot document = future.get();
         String storedPass = document.getString("password");
         String hashedPass = hashPassword(userAuth.getPassword());
-        if (MessageDigest.isEqual(storedPass.getBytes(StandardCharsets.UTF_8), hashedPass.getBytes(StandardCharsets.UTF_8))) {
+
+        if (MessageDigest.isEqual(storedPass.getBytes(StandardCharsets.UTF_8), hashedPass.getBytes(StandardCharsets.UTF_8)) ) {
+
+            if(document.getBoolean("active") == false){
+                throw new UserDisableException();
+            }
+
             Map<String, Object> data = new HashMap<>();
             data.put("lastLog", com.google.cloud.Timestamp.now());
-            data.put("active", true);
             WriteResult writeResult = documentReference.update(data).get();
             return uid;
         }

@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutionException;
 
 import com.google.cloud.firestore.QuerySnapshot;
 import englishdictionary.server.errors.AuthorizationException;
+import englishdictionary.server.errors.UserDisableException;
 import englishdictionary.server.errors.UserNotFoundException;
 import englishdictionary.server.utils.ControllerUtilities;
 import jakarta.servlet.http.HttpServletRequest;
@@ -157,7 +158,7 @@ public class UserController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<String> login(@RequestBody UserAuth userAuth, HttpServletRequest request) throws FirebaseAuthException {
+    public ResponseEntity<String> login(@RequestBody UserAuth userAuth, HttpServletRequest request){
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("getUserEmail", resource);
         try {
@@ -165,10 +166,19 @@ public class UserController {
             String uid = userServices.getUserId(userAuth);
             logger.info(prompt + " - Completed");
             return ResponseEntity.status(HttpStatus.OK).body(uid);
-        } catch (FirebaseAuthException | AuthorizationException authorizationException) {
+        } catch (AuthorizationException authorizationException) {
             logger.error("An error occurred when getting resource " + resource + " - Unauthorized - \n Error message: \n" + authorizationException.getMessage());
             throw authorizationException;
-        } catch (ExecutionException | InterruptedException e) {
+        }
+        catch (UserDisableException userDisableException){
+            logger.error("An error occurred when getting resource " + resource + " - User Has Been Banned - \n Error message: \n" + userDisableException.getMessage());
+            throw userDisableException;
+        }
+        catch (FirebaseAuthException firebaseAuthException){
+            logger.error("An error occurred when getting resource " + resource + " - Could not found Email - \n Error message: \n" + firebaseAuthException.getMessage());
+            throw new AuthorizationException();
+        }
+        catch (ExecutionException | InterruptedException e) {
             logger.error("An error occurred when getting resource " + resource + " - Execution interrupted - \n Error message: \n" + e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }

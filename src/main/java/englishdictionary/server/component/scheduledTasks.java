@@ -7,12 +7,16 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.cloud.FirestoreClient;
+import englishdictionary.server.gateways.AdminController;
 import englishdictionary.server.models.User;
 import englishdictionary.server.services.AdminService;
 import englishdictionary.server.services.UserService;
+import englishdictionary.server.utils.ControllerUtilities;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -35,6 +39,14 @@ public class scheduledTasks {
     private JavaMailSender emailSender;
     final int oneDay = 24 * 60 * 60 * 1000;
 
+    @Autowired
+    private ControllerUtilities utilFuncs;
+    private final Logger logger = LoggerFactory.getLogger(AdminController.class);
+
+    private String getFunctionCall(String functionName, String resource) {
+        return "[ScheduledTasks] call [" + functionName + "] to resource " + resource;
+    }
+
     @Scheduled(fixedRate = oneDay)
     public void runTask() throws ExecutionException, InterruptedException, FirebaseAuthException, MessagingException {
         List<String> userIds = adminService.getAllUserId();
@@ -45,7 +57,7 @@ public class scheduledTasks {
                     System.out.println("Message Sent For "+userService.getUserEmail(userId));
                 }
             }catch (NullPointerException e){
-                System.out.println("Task Fail at "+ userIds + "-Notify is null");
+                System.out.println("Task Fail at "+ userId + "-Notify is null");
             }
         }
         System.out.println("Task executed");
@@ -59,10 +71,8 @@ public class scheduledTasks {
             long timeDifference = currentTimeSeconds - documentTimeSeconds;
             if (timeDifference > thresholdSeconds) {
                 sendNotification(id);
-
             }
         }catch (NullPointerException ignored){
-
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
