@@ -8,18 +8,11 @@ import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.*;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.ListUsersPage;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
 import englishdictionary.server.errors.UserDisableException;
-import englishdictionary.server.errors.WordlistNotFoundException;
 import englishdictionary.server.models.User;
 import englishdictionary.server.models.UserAuth;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -45,6 +38,7 @@ import englishdictionary.server.EnglishDictionaryServerApplication;
 
 @Service
 public class UserService {
+    private Firestore dbfirestore;
 
     // ==================UpLoadFile=====================
     public Boolean uploadFile(MultipartFile file, String id) throws IOException {
@@ -77,9 +71,17 @@ public class UserService {
 
     //====================================================
 //======================UserProfileInformation==================
+    public Boolean isUserExist(String email){
+        try {
+            UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(email);
+            return true;
+        } catch (FirebaseAuthException e) {
+            return false;
+        }
+    }
     public User getUser(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
-        Firestore dbFirestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = dbFirestore.collection("users").document(userId);
+        dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("users").document(userId);
         ApiFuture<DocumentSnapshot> future = documentReference.get();
         DocumentSnapshot document = future.get();
         User user;
@@ -95,7 +97,7 @@ public class UserService {
         if (userRecord == null)
             throw new AuthorizationException();
         String uid = userRecord.getUid();
-        Firestore dbfirestore = FirestoreClient.getFirestore();
+        dbfirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbfirestore.collection("users").document(uid);
         ApiFuture<DocumentSnapshot> future = documentReference.get();
         DocumentSnapshot document = future.get();
@@ -142,7 +144,7 @@ public class UserService {
     }
 
     public Boolean getUserNotify(String id) throws ExecutionException, InterruptedException, UserNotFoundException {
-        Firestore dbfirestore = FirestoreClient.getFirestore();
+        dbfirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbfirestore.collection("users").document(id);
         ApiFuture<DocumentSnapshot> future = documentReference.get();
         DocumentSnapshot document = future.get();
@@ -153,7 +155,7 @@ public class UserService {
         return false;
     }
     public Boolean isUserActive(String id) throws ExecutionException, InterruptedException {
-        Firestore dbfirestore = FirestoreClient.getFirestore();
+        dbfirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbfirestore.collection("users").document(id);
         ApiFuture<DocumentSnapshot> future = documentReference.get();
         DocumentSnapshot document = future.get();
@@ -164,8 +166,8 @@ public class UserService {
         return false;
     }
     public Boolean updateNotify(String id) throws ExecutionException, InterruptedException {
-        Firestore dbFirestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = dbFirestore.collection("users").document(id);
+        dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("users").document(id);
         Boolean updatedNotify = !getUserNotify(id);
         WriteResult write = documentReference.update("notify", updatedNotify).get();
         return updatedNotify;
@@ -200,7 +202,7 @@ public class UserService {
     }
 
     public Timestamp getDate(String id) throws ExecutionException, InterruptedException {
-        Firestore dbfirestore = FirestoreClient.getFirestore();
+        dbfirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbfirestore.collection("users").document(id);
         ApiFuture<DocumentSnapshot> future = documentReference.get();
         DocumentSnapshot document = future.get();
@@ -216,8 +218,8 @@ public class UserService {
     //===============================================================
 //========================Data===================================
     public Map<String, String> getAllOccupation() throws ExecutionException, InterruptedException {
-        Firestore dbFirestore = FirestoreClient.getFirestore();
-        CollectionReference gendersCollection = dbFirestore.collection("occupations");
+        dbfirestore = FirestoreClient.getFirestore();
+        CollectionReference gendersCollection = dbfirestore.collection("occupations");
         ApiFuture<QuerySnapshot> future = gendersCollection.get();
         QuerySnapshot querySnapshot = future.get();
 
@@ -231,8 +233,8 @@ public class UserService {
     }
 
     public Map<String, String> getAllLevel() throws ExecutionException, InterruptedException {
-        Firestore dbFirestore = FirestoreClient.getFirestore();
-        CollectionReference gendersCollection = dbFirestore.collection("levels");
+        dbfirestore = FirestoreClient.getFirestore();
+        CollectionReference gendersCollection = dbfirestore.collection("levels");
         ApiFuture<QuerySnapshot> future = gendersCollection.get();
         QuerySnapshot querySnapshot = future.get();
 
@@ -246,8 +248,8 @@ public class UserService {
     }
 
     public Map<String, String> getAllGender() throws ExecutionException, InterruptedException {
-        Firestore dbFirestore = FirestoreClient.getFirestore();
-        CollectionReference gendersCollection = dbFirestore.collection("genders");
+        dbfirestore = FirestoreClient.getFirestore();
+        CollectionReference gendersCollection = dbfirestore.collection("genders");
         ApiFuture<QuerySnapshot> future = gendersCollection.get();
         QuerySnapshot querySnapshot = future.get();
 
@@ -267,6 +269,7 @@ public class UserService {
         UserRecord.CreateRequest request = new UserRecord.CreateRequest()
                 .setEmail(user.getEmail())
                 .setPassword(user.getPassword())
+                .setEmailVerified(true)
                 .setDisabled(false);
         UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
         String uid = userRecord.getUid();
@@ -297,6 +300,19 @@ public class UserService {
         return userRecord.getUid();
     }
 
+    public Boolean passwordReseter(String email, String password) throws FirebaseAuthException{
+        Boolean isExist = isUserExist(email);
+        if(isExist){
+            UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(email);
+            userRecord.updateRequest().setPassword(password);
+            String id = userRecord.getUid();
+            dbfirestore = FirestoreClient.getFirestore();
+            DocumentReference documentReference = dbfirestore.collection("users").document(id);
+            documentReference.update("password", hashPassword(password));
+            return true;
+        }
+        return false;
+    }
     public Boolean updateUserProfile(User user, String id) throws ExecutionException, InterruptedException {
 
         Firestore dbFirestore = FirestoreClient.getFirestore();
@@ -335,6 +351,7 @@ public class UserService {
     private void updateUserProfileOccupation(DocumentReference documentReference, Integer occupation) {
         documentReference.update("occupation", occupation);
     }
+
 //=================================================================================================
 
 

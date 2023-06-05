@@ -332,5 +332,16 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
+    @PostMapping("/reset/password/{code}")
+    public ResponseEntity<String> resetPassword(@PathVariable("code") String code, @RequestBody UserAuth userAuth){
+        try{
+            if(verificationCodeTask.checkCode(userAuth.getEmail(), code)){
+                userServices.passwordReseter(userAuth.getEmail(), userAuth.getPassword());
+                return ResponseEntity.status(HttpStatus.OK).body("password successfully reset");
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User Not Found");
+        } catch (ExecutionException | FirebaseAuthException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
