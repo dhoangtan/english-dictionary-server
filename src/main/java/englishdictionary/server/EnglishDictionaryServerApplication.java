@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.io.IOException;
@@ -19,6 +20,7 @@ import java.util.Properties;
 
 @SpringBootApplication
 @EnableScheduling
+@EnableAsync
 public class EnglishDictionaryServerApplication {
     public static void main(String[] args) throws IOException {
         InputStream serviceAccount = EnglishDictionaryServerApplication.class.getResourceAsStream("/service_account_key.json");

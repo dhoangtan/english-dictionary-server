@@ -1,14 +1,16 @@
 package englishdictionary.server.gateways;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import com.google.cloud.firestore.QuerySnapshot;
+import englishdictionary.server.component.verificationCodeTask;
 import englishdictionary.server.errors.AuthorizationException;
 import englishdictionary.server.errors.UserDisableException;
 import englishdictionary.server.errors.UserNotFoundException;
 import englishdictionary.server.utils.ControllerUtilities;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +32,12 @@ import englishdictionary.server.models.User;
 import englishdictionary.server.models.UserAuth;
 import englishdictionary.server.services.UserService;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.handler.ResponseStatusExceptionHandler;
 
 @Component
 @RestController
 @RequestMapping("api/user/")
 public class UserController {
+    private final verificationCodeTask verificationCodeTask;
     private final UserService userServices;
     private final ControllerUtilities utilFuncs;
     private final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -44,7 +46,8 @@ public class UserController {
         return "[UserController] call [" + functionName + "] to resource " + resource;
     }
 
-    public UserController(UserService userServices, ControllerUtilities controllerUtilities) {
+    public UserController(englishdictionary.server.component.verificationCodeTask verificationCodeTask, UserService userServices, ControllerUtilities controllerUtilities) {
+        this.verificationCodeTask = verificationCodeTask;
         utilFuncs = controllerUtilities;
         this.userServices = userServices;
     }
@@ -184,15 +187,19 @@ public class UserController {
         }
     }
 
-    @PostMapping("/new")
-    public ResponseEntity<String> createUser(@RequestBody User user, HttpServletRequest request) {
+    @PostMapping("/new/{code}")
+    public ResponseEntity<String> createUser(@RequestBody User user, @PathVariable("code") String code, HttpServletRequest request) {
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("getUserEmail", resource);
         try {
-            logger.info(prompt);
-            String uid = userServices.createUser(user);
-            logger.info(prompt + " - Completed");
-            return ResponseEntity.status(HttpStatus.OK).body(uid);
+            System.out.println(code);
+            if(verificationCodeTask.checkCode(user.getEmail(), code)){
+                logger.info(prompt);
+                String uid = userServices.createUser(user);
+                logger.info(prompt + " - Completed");
+                return ResponseEntity.status(HttpStatus.OK).body(uid);
+            }else
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Confirmation Code Is Incorrect.");
         } catch (FirebaseAuthException | AuthorizationException authorizationException) {
             logger.error("An error occurred when getting resource " + resource + " - Unauthorized - \n Error message: \n" + authorizationException.getMessage());
             throw new AuthorizationException();
@@ -201,7 +208,19 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
+    @GetMapping("/verify")
+    public ResponseEntity<String> sendCode(@RequestBody String userEmail) {
+        try{
+            System.out.println(userEmail);
+            verificationCodeTask.sendCodeToEmail(userEmail);
+            return ResponseEntity.status(HttpStatus.OK).body("Verification code sent.");
+        }
+        catch(MessagingException | UnsupportedEncodingException e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
     @PutMapping("/{id}")
     public ResponseEntity<String> updateUserInfo(@RequestBody UserAuth userAuth, @PathVariable("id") String id, HttpServletRequest request) {
         String resource = utilFuncs.getCurrentResourcePath(request);

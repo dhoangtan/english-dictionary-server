@@ -15,6 +15,11 @@ import englishdictionary.server.errors.UserDisableException;
 import englishdictionary.server.errors.WordlistNotFoundException;
 import englishdictionary.server.models.User;
 import englishdictionary.server.models.UserAuth;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -40,6 +45,7 @@ import englishdictionary.server.EnglishDictionaryServerApplication;
 
 @Service
 public class UserService {
+
     // ==================UpLoadFile=====================
     public Boolean uploadFile(MultipartFile file, String id) throws IOException {
         String bucketName = "englishdictionary-8237a.appspot.com";
@@ -330,5 +336,6 @@ public class UserService {
         documentReference.update("occupation", occupation);
     }
 //=================================================================================================
+
 
 }
