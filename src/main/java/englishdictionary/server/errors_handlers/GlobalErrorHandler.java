@@ -12,7 +12,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.util.concurrent.ExecutionException;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({
@@ -30,7 +30,7 @@ public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
             AuthorizationException.class,
             FirebaseAuthException.class
     })
-    public ResponseEntity<String> handleUnauthorizedException(AuthorizationException e) {
+    public ResponseEntity<String> handleUnauthorizedException(RuntimeException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
     }
 
