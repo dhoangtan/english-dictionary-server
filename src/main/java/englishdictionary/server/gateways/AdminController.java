@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.concurrent.ExecutionException;
 
@@ -123,13 +124,14 @@ public class AdminController {
             logger.info(prompt);
             adminService.deleteUser(id);
             return ResponseEntity.ok().build();
-        }catch(NotFoundException notFoundException){
-            logger.error("An error occurred when editing resource " + resource + " - Error - \n Error message:\n" + notFoundException.getMessage());
-            throw notFoundException;
-        }
-        catch (Exception e){
-            logger.error("An error occurred when getting resource " + resource + " - Error - \n Error message:\n" + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+
+        } catch (ExecutionException  e) {
+            logger.error("An error occurred when executing " + resource + " - Execution interrupted - \n Error message: \n" + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No document to execute");
+        } catch (InterruptedException e) {
+            logger.error("InterruptedException");
+            throw new RuntimeException(e);
+
         }
     }
 }
