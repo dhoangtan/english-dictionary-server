@@ -25,6 +25,7 @@ public class TestGenerateService {
         List<Question> questions = new ArrayList<>();
         for (DocumentSnapshot document : documents) {
             Question question = document.toObject(Question.class);
+            question.setId(document.getId());
             questions.add(question);
         }
 
