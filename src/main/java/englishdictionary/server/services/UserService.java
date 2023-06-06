@@ -263,6 +263,10 @@ public class UserService {
     }
 
     //=========================UserAction===============================
+    public void enrollCourses(){}
+    public void dropCourses(){}
+    public void teachingRegistry(){}
+    public void joinClassroom(){}
     public String createUser(User user) throws FirebaseAuthException, ExecutionException, InterruptedException, RuntimeException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         String hashedPassword = hashPassword(user.getPassword());
@@ -290,12 +294,10 @@ public class UserService {
 
     public String updateUserInfo(UserAuth userAuth, String id) throws FirebaseAuthException, ExecutionException, InterruptedException {
         UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(id)
-                .setEmail(userAuth.getEmail())
                 .setPassword(userAuth.getPassword());
         UserRecord userRecord = FirebaseAuth.getInstance().updateUser(request);
         Firestore dbFirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbFirestore.collection("users").document(id);
-        documentReference.update("email", userAuth.getEmail());
         documentReference.update("password", hashPassword(userAuth.getPassword()));
         return userRecord.getUid();
     }
@@ -334,10 +336,8 @@ public class UserService {
             updateUserProfileLevel(documentReference, level);
         if (occupation != null)
             updateUserProfileOccupation(documentReference, occupation);
-
         return true;
     }
-
 
     private void updateUserProfileFullName(DocumentReference documentReference, String fullName) {
         documentReference.update("fullName", fullName);
@@ -351,8 +351,5 @@ public class UserService {
     private void updateUserProfileOccupation(DocumentReference documentReference, Integer occupation) {
         documentReference.update("occupation", occupation);
     }
-
 //=================================================================================================
-
-
 }

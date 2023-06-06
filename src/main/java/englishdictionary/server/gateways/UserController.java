@@ -221,6 +221,7 @@ public class UserController {
             throw new RuntimeException(e);
         }
     }
+
     @PutMapping("/{id}")
     public ResponseEntity<String> updateUserInfo(@RequestBody UserAuth userAuth, @PathVariable("id") String id, HttpServletRequest request) {
         String resource = utilFuncs.getCurrentResourcePath(request);

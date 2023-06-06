@@ -131,7 +131,6 @@ public class AdminController {
         } catch (InterruptedException e) {
             logger.error("InterruptedException");
             throw new RuntimeException(e);
-
         }
     }
 }
