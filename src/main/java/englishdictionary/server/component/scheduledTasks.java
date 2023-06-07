@@ -54,7 +54,6 @@ public class scheduledTasks {
             try {
                 if(userService.getUserNotify(userId)){
                     notifier(userId);
-                    System.out.println("Message Sent For "+userService.getUserEmail(userId));
                 }
             }catch (NullPointerException e){
                 System.out.println("Task Fail at "+ userId + "-Notify is null");
@@ -71,6 +70,7 @@ public class scheduledTasks {
             long timeDifference = currentTimeSeconds - documentTimeSeconds;
             if (timeDifference > thresholdSeconds) {
                 sendNotification(id);
+                System.out.println("Message Sent For "+userService.getUserEmail(id));
             }
         }catch (NullPointerException ignored){
         } catch (UnsupportedEncodingException e) {
