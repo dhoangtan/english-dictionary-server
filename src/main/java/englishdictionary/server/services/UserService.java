@@ -52,6 +52,7 @@ public class UserService {
         StorageOptions options = StorageOptions.newBuilder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .build();
+
         Storage storage = options.getService();
         BlobId blobId = BlobId.of(bucketName, filename);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
@@ -353,6 +354,17 @@ public class UserService {
     }
 
 //=================================================================================================
-
+    public englishdictionary.server.models.testing.User referenceTesting (String userId) throws ExecutionException, InterruptedException {
+        dbfirestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = dbfirestore.collection("users").document(userId);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = future.get();
+        englishdictionary.server.models.testing.User user;
+        if (!document.exists()) {
+            throw new UserNotFoundException(userId);
+        }
+        user = document.toObject(englishdictionary.server.models.testing.User.class);
+        return user;
+    }
 
 }

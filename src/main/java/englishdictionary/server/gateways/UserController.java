@@ -344,4 +344,9 @@ public class UserController {
             throw new RuntimeException(e);
         }
     }
+    @PostMapping("/rtest/{id}")
+    public ResponseEntity<englishdictionary.server.models.testing.User> test(@PathVariable("id") String id) throws ExecutionException, InterruptedException {
+
+        return ResponseEntity.status(HttpStatus.OK).body(userServices.referenceTesting(id));
+    }
 }
