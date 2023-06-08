@@ -208,11 +208,11 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    @GetMapping("/verify")
-    public ResponseEntity<String> sendCode(@RequestBody String userEmail) {
+    @PostMapping("/verify")
+    public ResponseEntity<String> sendCode(@RequestBody String email) {
         try{
-            System.out.println(userEmail);
-            verificationCodeTask.sendCodeToEmail(userEmail);
+            System.out.println(email);
+            verificationCodeTask.sendCodeToEmail(email);
             return ResponseEntity.status(HttpStatus.OK).body("Verification code sent.");
         }
         catch(MessagingException | UnsupportedEncodingException e){
