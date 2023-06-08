@@ -19,7 +19,7 @@ public class DocumentReferencesSerializer extends JsonSerializer<DocumentReferen
             Firestore firestore = FirestoreClient.getFirestore();
             DocumentSnapshot documentSnapshot = documentReference.get().get();
             if (documentSnapshot.exists()) {
-                Object data = documentSnapshot.getData(); // Modify this line to fetch the desired data from the document
+                Object data = documentSnapshot.getString("name");
                 jsonGenerator.writeObject(data);
             }
         }
