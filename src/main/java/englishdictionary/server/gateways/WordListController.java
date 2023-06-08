@@ -59,12 +59,10 @@ public class WordListController {
             Wordlist wordlist = wordlistService.getWordlistById(wordlistId);
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(wordlist, HttpStatus.OK);
-        }
-        catch (WordlistNotFoundException wordlistNotFoundException) {
+        } catch (WordlistNotFoundException wordlistNotFoundException) {
             logger.error("Error occurred when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Not exists");
             throw wordlistNotFoundException;
-        }
-        catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException | InterruptedException e) {
             logger.error("Error when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -78,12 +76,10 @@ public class WordListController {
             List<Wordlist> result = wordlistService.searchForWordlist(name, word);
             logger.info(prompt + " - Completed");
             return result;
-        }
-        catch (WordNotFoundException | WordlistNotFoundException notFoundException) {
+        } catch (WordNotFoundException | WordlistNotFoundException notFoundException) {
             logger.error("Error occurred when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Not exists");
             throw notFoundException;
-        }
-        catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException | InterruptedException e) {
             logger.error("Error when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -101,12 +97,10 @@ public class WordListController {
             Word word = wordlistService.getWordlistWord(wordlistId, wordId);
             logger.info(prompt + " - Completed");
             return word;
-        }
-        catch (WordlistNotFoundException | WordNotFoundException notFoundException) {
+        } catch (WordlistNotFoundException | WordNotFoundException notFoundException) {
             logger.error("Error when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Not exists");
             throw notFoundException;
-        }
-        catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException | InterruptedException e) {
             logger.error("Error when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -117,19 +111,16 @@ public class WordListController {
         try {
             String prompt = getFunctionCall("createWordlist", utilFuncs.getCurrentResourcePath(request));
             logger.info(prompt);
-            Wordlist wordlist = wordlistService.createWordlist(wordListDto.getName(),wordListDto.getUserId());
+            Wordlist wordlist = wordlistService.createWordlist(wordListDto.getName(), wordListDto.getUserId());
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(wordlist, HttpStatus.CREATED);
-        }
-        catch (DuplicateWordlistException duplicateWordlistException) {
+        } catch (DuplicateWordlistException duplicateWordlistException) {
             logger.error("Error when creating resource " + utilFuncs.getCurrentResourcePath(request) + " - Already exists");
             throw duplicateWordlistException;
-        }
-        catch (InvalidParameterException invalidParameterException) {
+        } catch (InvalidParameterException invalidParameterException) {
             logger.error("Error when creating resource " + utilFuncs.getCurrentResourcePath(request) + " - Invalid param value");
             throw invalidParameterException;
-        }
-        catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException | InterruptedException e) {
             logger.error("Error when creating resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -144,8 +135,7 @@ public class WordListController {
                 logger.info(prompt + " - Completed");
                 return HttpStatus.ACCEPTED;
             }
-        }
-        catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException | InterruptedException e) {
             logger.error("Error when deleting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -207,6 +197,24 @@ public class WordListController {
             return HttpStatus.BAD_REQUEST;
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Error when adding resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @GetMapping("/testref/{wordlist-id}")
+    public ResponseEntity<englishdictionary.server.models.testing.Wordlist> getUserWordlist(@PathVariable("wordlist-id") String wordlistId, HttpServletRequest request) {
+        try {
+            String prompt = getFunctionCall("getUserWordlist", utilFuncs.getCurrentResourcePath(request));
+            logger.info(prompt);
+            englishdictionary.server.models.testing.Wordlist wordlist = wordlistService.getWordlistByIdRefTest(wordlistId);
+            logger.info(prompt + " - Completed");
+            return new ResponseEntity<>(wordlist, HttpStatus.OK);
+        } catch (WordlistNotFoundException wordlistNotFoundException) {
+            logger.error("Error occurred when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Not exists");
+            throw wordlistNotFoundException;
+        } catch (ExecutionException | InterruptedException e) {
+            logger.error("Error when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

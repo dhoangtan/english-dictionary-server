@@ -1,20 +1,13 @@
 package englishdictionary.server.services;
 
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import englishdictionary.server.errors.DuplicateWordlistException;
-import englishdictionary.server.errors.UserNotFoundException;
 import englishdictionary.server.errors.WordNotFoundException;
 import englishdictionary.server.errors.WordlistNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
+import englishdictionary.server.models.testing.User;
 import org.springframework.stereotype.Service;
 
 import com.google.api.core.ApiFuture;
@@ -28,7 +21,6 @@ import com.google.firebase.cloud.FirestoreClient;
 
 import englishdictionary.server.models.Word;
 import englishdictionary.server.models.Wordlist;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class WordlistService {
@@ -202,6 +194,28 @@ public class WordlistService {
         documentReference.update(wordlist.toHashMap());
 
         return true;
+    }
+
+
+    public englishdictionary.server.models.testing.Wordlist getWordlistByIdRefTest(String wordListId) throws ExecutionException, InterruptedException {
+        firestore = FirestoreClient.getFirestore();
+        DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordListId).get().get();
+        englishdictionary.server.models.testing.Wordlist wordlist = new englishdictionary.server.models.testing.Wordlist();
+
+        wordlist.setName(documentSnapshot.getString("name"));
+        wordlist.setWordlistId(documentSnapshot.getId());
+        wordlist.setWords((List<Word>) documentSnapshot.get("words"));
+        DocumentReference userRef = (DocumentReference) documentSnapshot.get("user");
+        System.out.println(userRef.getPath());
+        User user = userRef.get().get().toObject(User.class);
+
+        wordlist.setUser(user);
+
+        if (wordlist == null)
+            throw new WordlistNotFoundException(wordListId);
+
+        wordlist.setWordlistId(wordListId);
+        return wordlist;
     }
 
 }
