@@ -106,11 +106,9 @@ public class UserService {
         String hashedPass = hashPassword(userAuth.getPassword());
 
         if (MessageDigest.isEqual(storedPass.getBytes(StandardCharsets.UTF_8), hashedPass.getBytes(StandardCharsets.UTF_8)) ) {
-
             if(document.getBoolean("active") == false){
                 throw new UserDisableException();
             }
-
             Map<String, Object> data = new HashMap<>();
             data.put("lastLog", com.google.cloud.Timestamp.now());
             WriteResult writeResult = documentReference.update(data).get();
@@ -366,5 +364,28 @@ public class UserService {
         user = document.toObject(englishdictionary.server.models.testing.User.class);
         return user;
     }
+    public String createUser1(englishdictionary.server.models.testing.User user) throws FirebaseAuthException, ExecutionException, InterruptedException, RuntimeException {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        String hashedPassword = hashPassword(user.getPassword());
+        UserRecord.CreateRequest request = new UserRecord.CreateRequest()
+                .setEmail(user.getEmail())
+                .setPassword(user.getPassword())
+                .setEmailVerified(true)
+                .setDisabled(false);
+        UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
+        String uid = userRecord.getUid();
+        user.setPassword(hashedPassword);
+        DocumentReference userDocRef = dbFirestore.collection("users").document(uid);
+        ApiFuture<WriteResult> writeResult = userDocRef.set(user);
+        writeResult.get();
 
+        if (!writeResult.isDone())
+            throw new RuntimeException("An unexpected error occurred");
+        Map<String, Object> data = new HashMap<>();
+        data.put("lastLog", com.google.cloud.Timestamp.now());
+        data.put("notify", true);
+        data.put("active", true);
+        WriteResult write = userDocRef.update(data).get();
+        return uid;
+    }
 }

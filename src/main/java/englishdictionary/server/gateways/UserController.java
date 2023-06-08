@@ -349,4 +349,21 @@ public class UserController {
 
         return ResponseEntity.status(HttpStatus.OK).body(userServices.referenceTesting(id));
     }
+    @PostMapping("/new")
+    public ResponseEntity<String> createUser1(@RequestBody englishdictionary.server.models.testing.User user, HttpServletRequest request) {
+        String resource = utilFuncs.getCurrentResourcePath(request);
+        String prompt = getFunctionCall("getUserEmail", resource);
+        try {
+            logger.info(prompt);
+            String uid = userServices.createUser1(user);
+            logger.info(prompt + " - Completed");
+            return ResponseEntity.status(HttpStatus.OK).body(uid);
+        } catch (FirebaseAuthException | AuthorizationException authorizationException) {
+            logger.error("An error occurred when getting resource " + resource + " - Unauthorized - \n Error message: \n" + authorizationException.getMessage());
+            throw new AuthorizationException();
+        } catch (ExecutionException | InterruptedException | RuntimeException e) {
+            logger.error("An error occurred when getting resource " + resource + " - Execution interrupted - \n Error message: \n" + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
