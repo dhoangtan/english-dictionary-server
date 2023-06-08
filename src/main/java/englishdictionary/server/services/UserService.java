@@ -11,7 +11,8 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
 import englishdictionary.server.errors.UserDisableException;
-import englishdictionary.server.models.User;
+import englishdictionary.server.models.UserIn;
+import englishdictionary.server.models.document_references.User;
 import englishdictionary.server.models.UserAuth;
 import org.springframework.stereotype.Service;
 
@@ -72,7 +73,7 @@ public class UserService {
 
     //====================================================
 //======================UserProfileInformation==================
-    public Boolean isUserExist(String email){
+    public Boolean isUserExist(String email) {
         try {
             UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(email);
             return true;
@@ -80,6 +81,7 @@ public class UserService {
             return false;
         }
     }
+
     public User getUser(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         dbfirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbfirestore.collection("users").document(userId);
@@ -93,7 +95,7 @@ public class UserService {
         return user;
     }
 
-    public String getUserId(UserAuth userAuth) throws FirebaseAuthException, ExecutionException, InterruptedException, AuthorizationException, UserDisableException{
+    public String getUserId(UserAuth userAuth) throws FirebaseAuthException, ExecutionException, InterruptedException, AuthorizationException, UserDisableException {
         UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(userAuth.getEmail());
         if (userRecord == null)
             throw new AuthorizationException();
@@ -105,8 +107,8 @@ public class UserService {
         String storedPass = document.getString("password");
         String hashedPass = hashPassword(userAuth.getPassword());
 
-        if (MessageDigest.isEqual(storedPass.getBytes(StandardCharsets.UTF_8), hashedPass.getBytes(StandardCharsets.UTF_8)) ) {
-            if(document.getBoolean("active") == false){
+        if (MessageDigest.isEqual(storedPass.getBytes(StandardCharsets.UTF_8), hashedPass.getBytes(StandardCharsets.UTF_8))) {
+            if (document.getBoolean("active") == false) {
                 throw new UserDisableException();
             }
             Map<String, Object> data = new HashMap<>();
@@ -118,28 +120,28 @@ public class UserService {
     }
 
     public String getUserEmail(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
-        User user = getUser(userId);
-        if (user == null) {
+        User userIn = getUser(userId);
+        if (userIn == null) {
             throw new UserNotFoundException(userId);
         }
-        return user.getEmail();
+        return userIn.getEmail();
     }
 
     public String getUserFullname(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
-        User user = getUser(userId);
-        if (user == null) {
+        User userIn = getUser(userId);
+        if (userIn == null) {
             throw new UserNotFoundException(userId);
         }
-        return user.getFullName();
+        return userIn.getFullName();
     }
 
-    public Integer getUserGender(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
-        User user = getUser(userId);
+    public DocumentReference getUserGender(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
+        User userIn = getUser(userId);
 
-        if (user == null) {
+        if (userIn == null) {
             throw new UserNotFoundException(userId);
         }
-        return user.getGender();
+        return userIn.getGender();
     }
 
     public Boolean getUserNotify(String id) throws ExecutionException, InterruptedException, UserNotFoundException {
@@ -153,6 +155,7 @@ public class UserService {
         }
         return false;
     }
+
     public Boolean isUserActive(String id) throws ExecutionException, InterruptedException {
         dbfirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbfirestore.collection("users").document(id);
@@ -164,6 +167,7 @@ public class UserService {
         }
         return false;
     }
+
     public Boolean updateNotify(String id) throws ExecutionException, InterruptedException {
         dbfirestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = dbfirestore.collection("users").document(id);
@@ -171,23 +175,24 @@ public class UserService {
         WriteResult write = documentReference.update("notify", updatedNotify).get();
         return updatedNotify;
     }
-    public Integer getUserLevel(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
-        User user = getUser(userId);
 
-        if (user == null) {
+    public DocumentReference getUserLevel(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
+        User userIn = getUser(userId);
+
+        if (userIn == null) {
             throw new UserNotFoundException(userId);
         }
 
-        return user.getGender();
+        return userIn.getGender();
     }
 
-    public Integer getUserOccupation(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
-        User user = getUser(userId);
+    public DocumentReference getUserOccupation(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
+        User userIn = getUser(userId);
 
-        if (user == null) {
+        if (userIn == null) {
             throw new UserNotFoundException(userId);
         }
-        return user.getOccupation();
+        return userIn.getOccupation();
     }
 
     private String hashPassword(String password) throws RuntimeException {
@@ -211,7 +216,6 @@ public class UserService {
         }
         return null;
     }
-
 
 
     //===============================================================
@@ -262,19 +266,24 @@ public class UserService {
     }
 
     //=========================UserAction===============================
-    public String createUser(User user) throws FirebaseAuthException, ExecutionException, InterruptedException, RuntimeException {
+    public String createUser(UserIn userIn) throws FirebaseAuthException, ExecutionException, InterruptedException, RuntimeException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
-        String hashedPassword = hashPassword(user.getPassword());
+        String hashedPassword = hashPassword(userIn.getPassword());
         UserRecord.CreateRequest request = new UserRecord.CreateRequest()
-                .setEmail(user.getEmail())
-                .setPassword(user.getPassword())
+                .setEmail(userIn.getEmail())
+                .setPassword(userIn.getPassword())
                 .setEmailVerified(true)
                 .setDisabled(false);
+
+        DocumentReference userLevel = dbfirestore.collection("levels").document(userIn.getLevel().toString());
+        DocumentReference userGender = dbfirestore.collection("levels").document(userIn.getGender().toString());
+        DocumentReference userOccupation = dbfirestore.collection("levels").document(userIn.getOccupation().toString());
         UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
+        User newUserIn = new englishdictionary.server.models.document_references.User(userIn.getEmail(), userIn.getFullName(), userGender, userLevel, userOccupation, userIn.getPassword());
         String uid = userRecord.getUid();
-        user.setPassword(hashedPassword);
+        userIn.setPassword(hashedPassword);
         DocumentReference userDocRef = dbFirestore.collection("users").document(uid);
-        ApiFuture<WriteResult> writeResult = userDocRef.set(user);
+        ApiFuture<WriteResult> writeResult = userDocRef.set(newUserIn);
         writeResult.get();
 
         if (!writeResult.isDone())
@@ -299,9 +308,9 @@ public class UserService {
         return userRecord.getUid();
     }
 
-    public Boolean passwordReseter(String email, String password) throws FirebaseAuthException{
+    public Boolean passwordReseter(String email, String password) throws FirebaseAuthException {
         Boolean isExist = isUserExist(email);
-        if(isExist){
+        if (isExist) {
             UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(email);
             userRecord.updateRequest().setPassword(password);
             String id = userRecord.getUid();
@@ -312,7 +321,8 @@ public class UserService {
         }
         return false;
     }
-    public Boolean updateUserProfile(User user, String id) throws ExecutionException, InterruptedException {
+
+    public Boolean updateUserProfile(UserIn userIn, String id) throws ExecutionException, InterruptedException {
 
         Firestore dbFirestore = FirestoreClient.getFirestore();
         DocumentSnapshot documentSnapshot = dbFirestore.collection("users").document(id).get().get();
@@ -320,10 +330,10 @@ public class UserService {
             throw new UserNotFoundException(id);
 
         DocumentReference documentReference = documentSnapshot.getReference();
-        String fullName = user.getFullName();
-        Integer gender = user.getGender();
-        Integer level = user.getLevel();
-        Integer occupation = user.getOccupation();
+        String fullName = userIn.getFullName();
+        Integer gender = userIn.getGender();
+        Integer level = userIn.getLevel();
+        Integer occupation = userIn.getOccupation();
 
         if (fullName != null)
             updateUserProfileFullName(documentReference, fullName);
@@ -341,56 +351,18 @@ public class UserService {
     private void updateUserProfileFullName(DocumentReference documentReference, String fullName) {
         documentReference.update("fullName", fullName);
     }
+
     private void updateUserProfileGender(DocumentReference documentReference, Integer gender) {
         documentReference.update("gender", gender);
     }
+
     private void updateUserProfileLevel(DocumentReference documentReference, Integer level) {
         documentReference.update("level", level);
     }
+
     private void updateUserProfileOccupation(DocumentReference documentReference, Integer occupation) {
         documentReference.update("occupation", occupation);
     }
 
-//=================================================================================================
-    public englishdictionary.server.models.testing.User referenceTesting (String userId) throws ExecutionException, InterruptedException {
-        dbfirestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = dbfirestore.collection("users").document(userId);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
-        DocumentSnapshot document = future.get();
-        englishdictionary.server.models.testing.User user;
-        if (!document.exists()) {
-            throw new UserNotFoundException(userId);
-        }
-        user = document.toObject(englishdictionary.server.models.testing.User.class);
-        return user;
-    }
-    public String createUser1(User user) throws FirebaseAuthException, ExecutionException, InterruptedException, RuntimeException {
-        Firestore dbFirestore = FirestoreClient.getFirestore();
-        String hashedPassword = hashPassword(user.getPassword());
-        UserRecord.CreateRequest request = new UserRecord.CreateRequest()
-                .setEmail(user.getEmail())
-                .setPassword(user.getPassword())
-                .setEmailVerified(true)
-                .setDisabled(false);
-
-        DocumentReference userLevel = dbfirestore.collection("levels").document(user.getLevel().toString());
-        DocumentReference userGender = dbfirestore.collection("levels").document(user.getGender().toString());
-        DocumentReference userOccupation = dbfirestore.collection("levels").document(user.getOccupation().toString());
-        UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
-        englishdictionary.server.models.testing.User newUser = new englishdictionary.server.models.testing.User(user.getEmail(), user.getFullName(), userGender, userLevel, userOccupation, user.getPassword());
-        String uid = userRecord.getUid();
-        user.setPassword(hashedPassword);
-        DocumentReference userDocRef = dbFirestore.collection("users").document(uid);
-        ApiFuture<WriteResult> writeResult = userDocRef.set(newUser);
-        writeResult.get();
-
-        if (!writeResult.isDone())
-            throw new RuntimeException("An unexpected error occurred");
-        Map<String, Object> data = new HashMap<>();
-        data.put("lastLog", com.google.cloud.Timestamp.now());
-        data.put("notify", true);
-        data.put("active", true);
-        WriteResult write = userDocRef.update(data).get();
-        return uid;
-    }
+    //=================================================================================================
 }

@@ -5,10 +5,13 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import com.google.cloud.firestore.DocumentReference;
 import englishdictionary.server.component.verificationCodeTask;
 import englishdictionary.server.errors.AuthorizationException;
 import englishdictionary.server.errors.UserDisableException;
 import englishdictionary.server.errors.UserNotFoundException;
+import englishdictionary.server.models.UserIn;
+import englishdictionary.server.models.document_references.User;
 import englishdictionary.server.utils.ControllerUtilities;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +31,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.google.firebase.auth.FirebaseAuthException;
 
-import englishdictionary.server.models.User;
 import englishdictionary.server.models.UserAuth;
 import englishdictionary.server.services.UserService;
 import org.springframework.stereotype.Component;
@@ -58,9 +60,9 @@ public class UserController {
         String prompt = getFunctionCall("getUser", resource);
         try {
             logger.info(prompt);
-            User user = userServices.getUser(id);
+            User userIn = userServices.getUser(id);
             logger.info(prompt + " - Completed");
-            return new ResponseEntity<>(user, HttpStatus.OK);
+            return new ResponseEntity<>(userIn, HttpStatus.OK);
         } catch (UserNotFoundException userNotFoundException) {
             logger.error("An error occurred when getting resource " + resource + " - Not Found - \n Error message:\n" + userNotFoundException.getMessage());
             throw userNotFoundException;
@@ -107,12 +109,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}/profile/gender")
-    public ResponseEntity<Integer> getUserGender(@PathVariable("id") String id, HttpServletRequest request) {
+    public ResponseEntity<DocumentReference> getUserGender(@PathVariable("id") String id, HttpServletRequest request) {
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("getUserEmail", resource);
         try {
             logger.info(prompt);
-            Integer gender = userServices.getUserGender(id);
+            DocumentReference gender = userServices.getUserGender(id);
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(gender, HttpStatus.OK);
         } catch (UserNotFoundException userNotFoundException) {
@@ -125,12 +127,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}/profile/level")
-    public ResponseEntity<Integer> getUserLevel(@PathVariable("id") String id, HttpServletRequest request) {
+    public ResponseEntity<DocumentReference> getUserLevel(@PathVariable("id") String id, HttpServletRequest request) {
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("getUserEmail", resource);
         try {
             logger.info(prompt);
-            Integer level = userServices.getUserLevel(id);
+            DocumentReference level = userServices.getUserLevel(id);
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(level, HttpStatus.OK);
         } catch (UserNotFoundException userNotFoundException) {
@@ -143,12 +145,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}/profile/occupation")
-    public ResponseEntity<Integer> getUserOccupation(@PathVariable("id") String id, HttpServletRequest request) {
+    public ResponseEntity<DocumentReference> getUserOccupation(@PathVariable("id") String id, HttpServletRequest request) {
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("getUserEmail", resource);
         try {
             logger.info(prompt);
-            Integer occupation = userServices.getUserOccupation(id);
+            DocumentReference occupation = userServices.getUserOccupation(id);
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(occupation, HttpStatus.OK);
         } catch (UserNotFoundException userNotFoundException) {
@@ -188,18 +190,14 @@ public class UserController {
     }
 
     @PostMapping("/new/{code}")
-    public ResponseEntity<String> createUser(@RequestBody User user, @PathVariable("code") String code, HttpServletRequest request) {
+    public ResponseEntity<String> createUser(@RequestBody UserIn userIn, @PathVariable("code") String code, HttpServletRequest request) {
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("getUserEmail", resource);
         try {
-            System.out.println(code);
-            if(verificationCodeTask.checkCode(user.getEmail(), code)){
-                logger.info(prompt);
-                String uid = userServices.createUser(user);
-                logger.info(prompt + " - Completed");
-                return ResponseEntity.status(HttpStatus.OK).body(uid);
-            }else
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Confirmation Code Is Incorrect.");
+            logger.info(prompt);
+            String uid = userServices.createUser(userIn);
+            logger.info(prompt + " - Completed");
+            return ResponseEntity.status(HttpStatus.OK).body(uid);
         } catch (FirebaseAuthException | AuthorizationException authorizationException) {
             logger.error("An error occurred when getting resource " + resource + " - Unauthorized - \n Error message: \n" + authorizationException.getMessage());
             throw new AuthorizationException();
@@ -241,12 +239,12 @@ public class UserController {
     }
 
     @PutMapping("/profile/{id}")
-    public ResponseEntity<String> updateUserProfile(@RequestBody User user, @PathVariable("id") String id, HttpServletRequest request) {
+    public ResponseEntity<String> updateUserProfile(@RequestBody UserIn userIn, @PathVariable("id") String id, HttpServletRequest request) {
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("getUserEmail", resource);
         try {
             logger.info(prompt);
-            userServices.updateUserProfile(user, id);
+            userServices.updateUserProfile(userIn, id);
             logger.info(prompt + " - Completed");
             return ResponseEntity.status(HttpStatus.OK).build();
         }
@@ -342,28 +340,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User Not Found");
         } catch (ExecutionException | FirebaseAuthException | InterruptedException e) {
             throw new RuntimeException(e);
-        }
-    }
-    @PostMapping("/rtest/{id}")
-    public ResponseEntity<englishdictionary.server.models.testing.User> test(@PathVariable("id") String id) throws ExecutionException, InterruptedException {
-
-        return ResponseEntity.status(HttpStatus.OK).body(userServices.referenceTesting(id));
-    }
-    @PostMapping("/new")
-    public ResponseEntity<String> createUser1(@RequestBody User user, HttpServletRequest request) {
-        String resource = utilFuncs.getCurrentResourcePath(request);
-        String prompt = getFunctionCall("getUserEmail", resource);
-        try {
-            logger.info(prompt);
-            String uid = userServices.createUser1(user);
-            logger.info(prompt + " - Completed");
-            return ResponseEntity.status(HttpStatus.OK).body(uid);
-        } catch (FirebaseAuthException | AuthorizationException authorizationException) {
-            logger.error("An error occurred when getting resource " + resource + " - Unauthorized - \n Error message: \n" + authorizationException.getMessage());
-            throw new AuthorizationException();
-        } catch (ExecutionException | InterruptedException | RuntimeException e) {
-            logger.error("An error occurred when getting resource " + resource + " - Execution interrupted - \n Error message: \n" + e.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

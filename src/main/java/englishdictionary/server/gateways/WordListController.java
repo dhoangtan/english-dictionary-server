@@ -203,11 +203,11 @@ public class WordListController {
 
 
     @GetMapping("/testref/{wordlist-id}")
-    public ResponseEntity<englishdictionary.server.models.testing.Wordlist> getUserWordlist(@PathVariable("wordlist-id") String wordlistId, HttpServletRequest request) {
+    public ResponseEntity<englishdictionary.server.models.document_references.Wordlist> getUserWordlist(@PathVariable("wordlist-id") String wordlistId, HttpServletRequest request) {
         try {
             String prompt = getFunctionCall("getUserWordlist", utilFuncs.getCurrentResourcePath(request));
             logger.info(prompt);
-            englishdictionary.server.models.testing.Wordlist wordlist = wordlistService.getWordlistByIdRefTest(wordlistId);
+            englishdictionary.server.models.document_references.Wordlist wordlist = wordlistService.getWordlistByIdRefTest(wordlistId);
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(wordlist, HttpStatus.OK);
         } catch (WordlistNotFoundException wordlistNotFoundException) {

@@ -1,19 +1,13 @@
-package englishdictionary.server.models.testing;
+package englishdictionary.server.models.document_references;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.google.cloud.firestore.DocumentReference;
-import englishdictionary.server.models.testing.User;
 import englishdictionary.server.models.Word;
-import englishdictionary.server.serializer.DocumentReferencesDeserializer;
-import englishdictionary.server.serializer.DocumentReferencesSerializer;
 import englishdictionary.server.serializer.UserDeserializer;
 import englishdictionary.server.serializer.UserSerializer;
 import lombok.Data;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Data
 public class Wordlist {

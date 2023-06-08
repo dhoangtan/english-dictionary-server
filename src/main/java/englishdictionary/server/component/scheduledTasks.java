@@ -1,14 +1,8 @@
 package englishdictionary.server.component;
 
-import com.google.api.core.ApiFuture;
 import com.google.cloud.Timestamp;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
 import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.cloud.FirestoreClient;
 import englishdictionary.server.gateways.AdminController;
-import englishdictionary.server.models.User;
 import englishdictionary.server.services.AdminService;
 import englishdictionary.server.services.UserService;
 import englishdictionary.server.utils.ControllerUtilities;
@@ -18,7 +12,6 @@ import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;

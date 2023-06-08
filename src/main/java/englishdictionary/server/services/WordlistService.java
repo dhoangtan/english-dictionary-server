@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutionException;
 import englishdictionary.server.errors.DuplicateWordlistException;
 import englishdictionary.server.errors.WordNotFoundException;
 import englishdictionary.server.errors.WordlistNotFoundException;
-import englishdictionary.server.models.testing.User;
+import englishdictionary.server.models.document_references.User;
 import org.springframework.stereotype.Service;
 
 import com.google.api.core.ApiFuture;
@@ -197,10 +197,10 @@ public class WordlistService {
     }
 
 
-    public englishdictionary.server.models.testing.Wordlist getWordlistByIdRefTest(String wordListId) throws ExecutionException, InterruptedException {
+    public englishdictionary.server.models.document_references.Wordlist getWordlistByIdRefTest(String wordListId) throws ExecutionException, InterruptedException {
         firestore = FirestoreClient.getFirestore();
         DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordListId).get().get();
-        englishdictionary.server.models.testing.Wordlist wordlist = new englishdictionary.server.models.testing.Wordlist();
+        englishdictionary.server.models.document_references.Wordlist wordlist = new englishdictionary.server.models.document_references.Wordlist();
 
         wordlist.setName(documentSnapshot.getString("name"));
         wordlist.setWordlistId(documentSnapshot.getId());
