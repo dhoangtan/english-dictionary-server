@@ -364,7 +364,7 @@ public class UserService {
         user = document.toObject(englishdictionary.server.models.testing.User.class);
         return user;
     }
-    public String createUser1(englishdictionary.server.models.testing.User user) throws FirebaseAuthException, ExecutionException, InterruptedException, RuntimeException {
+    public String createUser1(User user) throws FirebaseAuthException, ExecutionException, InterruptedException, RuntimeException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         String hashedPassword = hashPassword(user.getPassword());
         UserRecord.CreateRequest request = new UserRecord.CreateRequest()
@@ -372,11 +372,16 @@ public class UserService {
                 .setPassword(user.getPassword())
                 .setEmailVerified(true)
                 .setDisabled(false);
+
+        DocumentReference userLevel = dbfirestore.collection("levels").document(user.getLevel().toString());
+        DocumentReference userGender = dbfirestore.collection("levels").document(user.getGender().toString());
+        DocumentReference userOccupation = dbfirestore.collection("levels").document(user.getOccupation().toString());
         UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
+        englishdictionary.server.models.testing.User newUser = new englishdictionary.server.models.testing.User(user.getEmail(), user.getFullName(), userGender, userLevel, userOccupation, user.getPassword());
         String uid = userRecord.getUid();
         user.setPassword(hashedPassword);
         DocumentReference userDocRef = dbFirestore.collection("users").document(uid);
-        ApiFuture<WriteResult> writeResult = userDocRef.set(user);
+        ApiFuture<WriteResult> writeResult = userDocRef.set(newUser);
         writeResult.get();
 
         if (!writeResult.isDone())

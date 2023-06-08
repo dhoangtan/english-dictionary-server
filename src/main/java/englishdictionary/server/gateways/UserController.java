@@ -350,7 +350,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(userServices.referenceTesting(id));
     }
     @PostMapping("/new")
-    public ResponseEntity<String> createUser1(@RequestBody englishdictionary.server.models.testing.User user, HttpServletRequest request) {
+    public ResponseEntity<String> createUser1(@RequestBody User user, HttpServletRequest request) {
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("getUserEmail", resource);
         try {
