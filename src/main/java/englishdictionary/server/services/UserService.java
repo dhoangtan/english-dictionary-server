@@ -135,13 +135,13 @@ public class UserService {
         return userIn.getFullName();
     }
 
-    public DocumentReference getUserGender(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
+    public String getUserGender(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         User userIn = getUser(userId);
-
+        String userGender = userIn.getGender().get().get().getString("name");
         if (userIn == null) {
             throw new UserNotFoundException(userId);
         }
-        return userIn.getGender();
+        return userGender;
     }
 
     public Boolean getUserNotify(String id) throws ExecutionException, InterruptedException, UserNotFoundException {
@@ -176,23 +176,22 @@ public class UserService {
         return updatedNotify;
     }
 
-    public DocumentReference getUserLevel(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
+    public String getUserLevel(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         User userIn = getUser(userId);
-
+        String userLevel = userIn.getLevel().get().get().getString("name");
         if (userIn == null) {
             throw new UserNotFoundException(userId);
         }
-
-        return userIn.getGender();
+        return userLevel;
     }
 
-    public DocumentReference getUserOccupation(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
+    public String getUserOccupation(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         User userIn = getUser(userId);
-
+        String userOccupation = userIn.getOccupation().get().get().getString("name");
         if (userIn == null) {
             throw new UserNotFoundException(userId);
         }
-        return userIn.getOccupation();
+        return userOccupation;
     }
 
     private String hashPassword(String password) throws RuntimeException {

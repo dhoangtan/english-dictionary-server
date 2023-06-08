@@ -109,12 +109,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}/profile/gender")
-    public ResponseEntity<DocumentReference> getUserGender(@PathVariable("id") String id, HttpServletRequest request) {
+    public ResponseEntity<String> getUserGender(@PathVariable("id") String id, HttpServletRequest request) {
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("getUserEmail", resource);
         try {
             logger.info(prompt);
-            DocumentReference gender = userServices.getUserGender(id);
+            String gender = userServices.getUserGender(id);
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(gender, HttpStatus.OK);
         } catch (UserNotFoundException userNotFoundException) {
@@ -127,12 +127,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}/profile/level")
-    public ResponseEntity<DocumentReference> getUserLevel(@PathVariable("id") String id, HttpServletRequest request) {
+    public ResponseEntity<String> getUserLevel(@PathVariable("id") String id, HttpServletRequest request) {
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("getUserEmail", resource);
         try {
             logger.info(prompt);
-            DocumentReference level = userServices.getUserLevel(id);
+            String level = userServices.getUserLevel(id);
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(level, HttpStatus.OK);
         } catch (UserNotFoundException userNotFoundException) {
@@ -145,12 +145,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}/profile/occupation")
-    public ResponseEntity<DocumentReference> getUserOccupation(@PathVariable("id") String id, HttpServletRequest request) {
+    public ResponseEntity<String> getUserOccupation(@PathVariable("id") String id, HttpServletRequest request) {
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("getUserEmail", resource);
         try {
             logger.info(prompt);
-            DocumentReference occupation = userServices.getUserOccupation(id);
+            String occupation = userServices.getUserOccupation(id);
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(occupation, HttpStatus.OK);
         } catch (UserNotFoundException userNotFoundException) {
@@ -194,10 +194,13 @@ public class UserController {
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("getUserEmail", resource);
         try {
-            logger.info(prompt);
-            String uid = userServices.createUser(userIn);
-            logger.info(prompt + " - Completed");
-            return ResponseEntity.status(HttpStatus.OK).body(uid);
+            if(verificationCodeTask.checkCode(userIn.getEmail(), code)) {
+                logger.info(prompt);
+                String uid = userServices.createUser(userIn);
+                logger.info(prompt + " - Completed");
+                return ResponseEntity.status(HttpStatus.OK).body(uid);
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } catch (FirebaseAuthException | AuthorizationException authorizationException) {
             logger.error("An error occurred when getting resource " + resource + " - Unauthorized - \n Error message: \n" + authorizationException.getMessage());
             throw new AuthorizationException();
@@ -274,6 +277,7 @@ public class UserController {
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("getUserEmail", resource);
         try {
+
             logger.info(prompt);
             String response = userServices.getFileAccessToken(id);
             logger.info(prompt + " - Completed");
