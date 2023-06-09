@@ -8,32 +8,30 @@ import java.util.List;
 
 @Component
 public class ChatWebSocketHandler implements WebSocketHandler {
-    private List<WebSocketSession> sessions = new ArrayList<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        sessions.add(session);
+        System.out.println("New WebSocket connection established: " + session.getId());
     }
 
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
-        for (WebSocketSession s : sessions) {
-            s.sendMessage(new TextMessage("Received message: " + message.getPayload()));
-        }
-    }
-
-    @Override
-    public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-
+        System.out.println("Received message: " + message.getPayload());
+        session.sendMessage(new TextMessage("Echo: " + message.getPayload()));
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
-        sessions.remove(session);
+        System.out.println("WebSocket connection closed: " + session.getId());
     }
 
     @Override
     public boolean supportsPartialMessages() {
         return false;
+    }
+
+    @Override
+    public void handleTransportError(WebSocketSession session, Throwable throwable) throws Exception {
+        System.out.println("Error occurred in WebSocket connection: " + session.getId());
     }
 }
