@@ -12,4 +12,5 @@ public class UserDto {
     private Integer level;
     private Integer occupation;
     private String id;
+    private Boolean active;
 }
