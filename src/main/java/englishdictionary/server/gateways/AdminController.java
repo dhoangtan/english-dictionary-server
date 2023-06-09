@@ -2,6 +2,7 @@ package englishdictionary.server.gateways;
 
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.firebase.auth.FirebaseAuthException;
+import englishdictionary.server.dtos.UserDto;
 import englishdictionary.server.errors.UserNotFoundException;
 import englishdictionary.server.models.*;
 import englishdictionary.server.services.AdminService;
@@ -123,7 +124,7 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    @DeleteMapping("delete/user/{id}")
+    @DeleteMapping("disable/user/{id}")
     public ResponseEntity<String> setUserActiveState(@PathVariable("id") String id, HttpServletRequest request){
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("deleteUser", resource);
@@ -141,15 +142,21 @@ public class AdminController {
 
         }
     }
-    @GetMapping("/get/all/user")
-    public ResponseEntity<List<User>> getAllUser(){
+
+    @GetMapping("/get/user/{id}")
+    public ResponseEntity<UserDto> getUserById(@PathVariable String id){
         try{
-            List<String> allUserId = adminService.getAllUserId();
-            List<User> ListOUser = new ArrayList<>();
-            for (String userId : allUserId) {
-                ListOUser.add(userService.getUser(userId));
-            }
-            return ResponseEntity.status(HttpStatus.OK).body(ListOUser);
+            return ResponseEntity.status(HttpStatus.OK).body(adminService.getUser(id));
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    @GetMapping("/get/all/user")
+    public ResponseEntity<List<UserDto>> getAllUser(){
+        try{
+            return ResponseEntity.status(HttpStatus.OK).body(adminService.getAllUser());
         } catch (FirebaseAuthException e) {
             throw new RuntimeException(e);
         } catch (ExecutionException e) {
