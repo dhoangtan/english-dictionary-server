@@ -277,7 +277,6 @@ public class UserController {
         String resource = utilFuncs.getCurrentResourcePath(request);
         String prompt = getFunctionCall("getUserEmail", resource);
         try {
-
             logger.info(prompt);
             String response = userServices.getFileAccessToken(id);
             logger.info(prompt + " - Completed");
