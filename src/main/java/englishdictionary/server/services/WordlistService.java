@@ -166,7 +166,6 @@ public class WordlistService {
         return wordlist;
     }
 
-    // TODO: might get error. fix later
     public Word getWordlistWord(String wordlistId, Integer wordId) throws ExecutionException, InterruptedException{
         firestore = FirestoreClient.getFirestore();
         DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordlistId).get().get();
