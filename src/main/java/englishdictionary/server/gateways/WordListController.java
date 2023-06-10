@@ -43,7 +43,7 @@ public class WordListController {
         try {
             String prompt = getFunctionCall("getAllUserWordLists", utilFuncs.getCurrentResourcePath(request));
             logger.info(prompt);
-            List<Wordlist> wordLists = wordlistService.getAllUserWordListsRef(userId);
+            List<Wordlist> wordLists = wordlistService.getAllUserWordLists(userId);
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(wordLists, HttpStatus.OK);
         } catch (ExecutionException | InterruptedException | FirebaseAuthException e ) {
@@ -57,7 +57,7 @@ public class WordListController {
         try {
             String prompt = getFunctionCall("getUserWordlist", utilFuncs.getCurrentResourcePath(request));
             logger.info(prompt);
-            Wordlist wordlist = wordlistService.getWordlistByIdRef(wordlistId);
+            Wordlist wordlist = wordlistService.getWordlistById(wordlistId);
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(wordlist, HttpStatus.OK);
         } catch (WordlistNotFoundException wordlistNotFoundException) {
@@ -112,7 +112,7 @@ public class WordListController {
         try {
             String prompt = getFunctionCall("createWordlist", utilFuncs.getCurrentResourcePath(request));
             logger.info(prompt);
-            Wordlist wordlist = wordlistService.createWordlistRef(wordListDto.getName(), wordListDto.getUserId());
+            Wordlist wordlist = wordlistService.createWordlist(wordListDto.getName(), wordListDto.getUserId());
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(wordlist, HttpStatus.CREATED);
         } catch (DuplicateWordlistException duplicateWordlistException) {

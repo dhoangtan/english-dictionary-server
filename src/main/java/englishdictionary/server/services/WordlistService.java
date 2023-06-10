@@ -31,13 +31,12 @@ public class WordlistService {
     @Autowired
     private UserService userService;
 
-    // Wordlist query migration
-
+// ============ Util Functions ============
     private User getUserByDocumentReference(DocumentReference documentReference) throws ExecutionException, InterruptedException {
         return documentReference.get().get().toObject(User.class);
     }
 
-    private List<Word> getWords(List<HashMap<String, Object>> listObjectAsHashMap) {
+    private List<Word> converListWordFromListHashMap(List<HashMap<String, Object>> listObjectAsHashMap) {
         List<Word> words = new ArrayList<>();
 
         for (HashMap<String, Object> h : listObjectAsHashMap) {
@@ -51,63 +50,102 @@ public class WordlistService {
         return words;
     }
 
-    public Wordlist getWordlistByIdRef(String wordListId) throws ExecutionException, InterruptedException {
+    private boolean isDuplicateWordlistName(String wordlistName, String userId) throws ExecutionException, InterruptedException, FirebaseAuthException {
+        List<Wordlist> wordlists = getAllUserWordLists(userId);
+        for(Wordlist wordlist : wordlists)
+            if (Objects.equals(wordlist.getName(), wordlistName))
+                return true;
+        return false;
+    }
+
+    private Wordlist getWordlistFromReference(DocumentReference documentReference) throws InterruptedException, ExecutionException {
+        DocumentSnapshot document = documentReference.get().get();
+
+        Wordlist wordlist = new Wordlist();
+
+        wordlist.setWordlistId(document.getId());
+        wordlist.setName(document.getString("name"));
+        wordlist.setUser(getUserByDocumentReference((DocumentReference) document.get("user")));
+
+        List<HashMap<String, Object>> listWordAsHashMap = (List<HashMap<String, Object>>) document.get("words");
+        List<Word> words = converListWordFromListHashMap(listWordAsHashMap);
+
+        wordlist.setWords(words);
+        return wordlist;
+    }
+
+    private boolean isDuplicateWord(Wordlist wordlist, Word word) {
+        if (wordlist.getWords()
+                .stream()
+                .anyMatch(w ->
+                        (w.getWord().equals(word.getWord()) && w.getDefinition().equals(word.getDefinition()))
+                )
+        )
+            return true;
+        return false;
+    }
+
+    private void generateWordId(Wordlist wordlist, Word word) {
+        if (wordlist.getWords().size() == 0)
+            word.setId(1);
+        else
+            word.setId(wordlist.getWords().get(wordlist.getWords().size() - 1).getId()+1);
+    }
+// ============ End of Util Functions ============
+
+    public Wordlist getWordlistById(String wordListId) throws ExecutionException, InterruptedException {
         firestore = FirestoreClient.getFirestore();
         DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordListId).get().get();
         Wordlist wordlist = new Wordlist();
 
         wordlist.setName(documentSnapshot.getString("name"));
+
         wordlist.setWordlistId(documentSnapshot.getId());
+
         wordlist.setWords((List<Word>) documentSnapshot.get("words"));
-        DocumentReference userRef = (DocumentReference) documentSnapshot.get("user");
-        System.out.println(userRef.getPath());
-        User user = userRef.get().get().toObject(User.class);
 
+        User user = getUserByDocumentReference((DocumentReference) documentSnapshot.get("user"));
         wordlist.setUser(user);
-
-        if (wordlist == null)
-            throw new WordlistNotFoundException(wordListId);
 
         wordlist.setWordlistId(wordListId);
         return wordlist;
     }
 
-    public List<Wordlist> getAllUserWordListsRef(String userId) throws ExecutionException, InterruptedException, FirebaseAuthException {
+    public List<Wordlist> getAllUserWordLists(String userId) throws ExecutionException, InterruptedException, FirebaseAuthException {
         firestore = FirestoreClient.getFirestore();
-        ApiFuture<QuerySnapshot> future = firestore.collection("word_lists_ref").get(); // TODO: Remove ref after complete feature
+        ApiFuture<QuerySnapshot> future = firestore.collection("word_lists").get();
         List<QueryDocumentSnapshot> documents = future.get().getDocuments();
         List<Wordlist> wordlists = new ArrayList<>();
         for (DocumentSnapshot document : documents) {
 
-            DocumentReference userRef = (DocumentReference) document.get("user");
-            System.out.println(userRef.getPath());
-            User user = userRef.get().get().toObject(User.class);
+            User user = getUserByDocumentReference((DocumentReference) document.get("user"));
 
             if (!userService.getUserId(user.getEmail()).equals(userId))
                 continue;
 
+
             Wordlist wordlist = new Wordlist();
+            wordlist.setUser(user);
             wordlist.setName(document.getString("name"));
             wordlist.setWordlistId(document.getId());
-            wordlist.setWords((List<Word>) document.get("words"));
-            wordlists.add(wordlist);
 
-            wordlist.setUser(user);
+            List<Word> words = converListWordFromListHashMap((List<HashMap<String, Object>>) document.get("words"));
+            wordlist.setWords(words);
+
+            wordlists.add(wordlist);
         }
 
         return wordlists;
     }
 
-    public Wordlist createWordlistRef(String wordlistName, String userId) throws ExecutionException, InterruptedException, FirebaseAuthException {
+    public Wordlist createWordlist(String wordlistName, String userId) throws ExecutionException, InterruptedException, FirebaseAuthException {
         if (wordlistName == null)
             throw new InvalidParameterException("Wordlist name cannot be null");
 
         firestore = FirestoreClient.getFirestore();
 
-        List<Wordlist> wordlists = getAllUserWordListsRef(userId);
-        for(Wordlist wordlist : wordlists)
-            if (Objects.equals(wordlist.getName(), wordlistName))
-                throw new DuplicateWordlistException(wordlistName);
+        if(isDuplicateWordlistName(wordlistName, userId))
+            throw new DuplicateWordlistException(wordlistName);
 
 
         DocumentReference userRef = userService.getUserDocumentReferenceById(userId);
@@ -128,6 +166,7 @@ public class WordlistService {
         return wordlist;
     }
 
+    // TODO: might get error. fix later
     public Word getWordlistWord(String wordlistId, Integer wordId) throws ExecutionException, InterruptedException{
         firestore = FirestoreClient.getFirestore();
         DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordlistId).get().get();
@@ -144,6 +183,7 @@ public class WordlistService {
         return word;
     }
 
+    // TODO: might get error. fix later
     public List<Wordlist> searchForWordlist(String name, String word) throws ExecutionException, InterruptedException{
         firestore = FirestoreClient.getFirestore();
         ApiFuture<QuerySnapshot> query = firestore.collection("word_lists").get();
@@ -177,29 +217,7 @@ public class WordlistService {
     public boolean removeWordlistWord(String wordlistId, Integer wordId) throws ExecutionException, InterruptedException {
         firestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = firestore.collection("word_lists_ref").document(wordlistId);
-        DocumentSnapshot document = documentReference.get().get();
-
-        Wordlist wordlist = new Wordlist();
-
-        wordlist.setWordlistId(document.getId());
-        wordlist.setName(document.getString("name"));
-        wordlist.setUser(getUserByDocumentReference((DocumentReference) document.get("user")));
-
-        List<HashMap<String, Object>> listHashMappu = (List<HashMap<String, Object>>) document.get("words");
-        List<Word> words = new ArrayList<>();
-
-        for (HashMap<String, Object> h : listHashMappu) {
-            Word word = new Word();
-            word.setId(Integer.parseInt(h.get("id").toString()));
-            word.setWord(h.get("word").toString());
-            word.setDefinition(h.get("definition").toString());
-            words.add(word);
-        }
-
-        wordlist.setWords(words);
-
-        if (wordlist == null)
-            throw new WordlistNotFoundException(wordlistId);
+        Wordlist wordlist = getWordlistFromReference(documentReference);
 
         wordlist.getWords().removeIf(word -> word.getId() == wordId);
 
@@ -225,47 +243,16 @@ public class WordlistService {
     public boolean addWordToWordlist(String wordlistId, Word word) throws ExecutionException, InterruptedException{
         firestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = firestore.collection("word_lists").document(wordlistId);
-        DocumentSnapshot document = documentReference.get().get();
 
-        Wordlist wordlist = new Wordlist();
+        Wordlist wordlist = getWordlistFromReference(documentReference);
 
-        wordlist.setWordlistId(document.getId());
-        wordlist.setName(document.getString("name"));
-        wordlist.setUser(getUserByDocumentReference((DocumentReference) document.get("user")));
-
-        List<HashMap<String, Object>> listHashMappu = (List<HashMap<String, Object>>) document.get("words");
-        List<Word> words = new ArrayList<>();
-
-        for (HashMap<String, Object> h : listHashMappu) {
-            Word w = new Word();
-            w.setId(Integer.parseInt(h.get("id").toString()));
-            w.setWord(h.get("word").toString());
-            w.setDefinition(h.get("definition").toString());
-            words.add(w);
-        }
-
-        wordlist.setWords(words);
-
-        if (wordlist == null)
-            throw new WordlistNotFoundException(wordlistId);
-
-        // prevent adding the same word multiple times
-        if (wordlist.getWords()
-                .stream()
-                .anyMatch(w ->
-                        (w.getWord().equals(word.getWord()) && w.getDefinition().equals(word.getDefinition()))
-                )
-        )
+        if (isDuplicateWord(wordlist, word))
             return false;
 
-        if (wordlist.getWords().size() == 0)
-            word.setId(1);
-        else
-            word.setId(wordlist.getWords().get(wordlist.getWords().size() - 1).getId()+1);
+        generateWordId(wordlist, word);
         wordlist.getWords().add(word);
 
         documentReference.update(wordlist.toHashMap());
-
         return true;
     }
 
