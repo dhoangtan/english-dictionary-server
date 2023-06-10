@@ -60,14 +60,16 @@ public class WordlistService {
 
     private Wordlist getWordlistFromReference(DocumentReference documentReference) throws InterruptedException, ExecutionException {
         DocumentSnapshot document = documentReference.get().get();
+        return getWordlistFromSnapshot(document);
+    }
 
+    private Wordlist getWordlistFromSnapshot(DocumentSnapshot documentSnapshot) throws ExecutionException, InterruptedException {
         Wordlist wordlist = new Wordlist();
 
-        wordlist.setWordlistId(document.getId());
-        wordlist.setName(document.getString("name"));
-        wordlist.setUser(getUserByDocumentReference((DocumentReference) document.get("user")));
-
-        List<HashMap<String, Object>> listWordAsHashMap = (List<HashMap<String, Object>>) document.get("words");
+        wordlist.setWordlistId(documentSnapshot.getId());
+        wordlist.setName(documentSnapshot.getString("name"));
+        wordlist.setUser(getUserByDocumentReference((DocumentReference) documentSnapshot.get("user")));
+        List<HashMap<String, Object>> listWordAsHashMap = (List<HashMap<String, Object>>) documentSnapshot.get("words");
         List<Word> words = converListWordFromListHashMap(listWordAsHashMap);
 
         wordlist.setWords(words);
@@ -90,6 +92,11 @@ public class WordlistService {
             word.setId(1);
         else
             word.setId(wordlist.getWords().get(wordlist.getWords().size() - 1).getId()+1);
+    }
+
+    private boolean isMatchCriteria(Wordlist wordlist, String name, String word) {
+        return (wordlist.getName().toLowerCase().contains(name.toLowerCase()) &&
+                wordlist.getWords().stream().filter(w -> w.getWord().toLowerCase().contains(word.toLowerCase())).findFirst().orElse(null) != null);
     }
 // ============ End of Util Functions ============
 
@@ -123,14 +130,7 @@ public class WordlistService {
             if (!userService.getUserId(user.getEmail()).equals(userId))
                 continue;
 
-
-            Wordlist wordlist = new Wordlist();
-            wordlist.setUser(user);
-            wordlist.setName(document.getString("name"));
-            wordlist.setWordlistId(document.getId());
-
-            List<Word> words = converListWordFromListHashMap((List<HashMap<String, Object>>) document.get("words"));
-            wordlist.setWords(words);
+            Wordlist wordlist = getWordlistFromSnapshot(document);
 
             wordlists.add(wordlist);
         }
@@ -171,7 +171,7 @@ public class WordlistService {
         firestore = FirestoreClient.getFirestore();
         DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordlistId).get().get();
 
-        Wordlist wordlist = documentSnapshot.toObject(Wordlist.class);
+        Wordlist wordlist = getWordlistFromSnapshot(documentSnapshot);
 
         if (wordlist == null)
             throw new WordlistNotFoundException(wordlistId);
@@ -183,24 +183,17 @@ public class WordlistService {
         return word;
     }
 
-    // TODO: might get error. fix later
     public List<Wordlist> searchForWordlist(String name, String word) throws ExecutionException, InterruptedException{
         firestore = FirestoreClient.getFirestore();
-        ApiFuture<QuerySnapshot> query = firestore.collection("word_lists").get();
+        ApiFuture<QuerySnapshot> query = firestore.collection("word_lists_ref").get();
         List<QueryDocumentSnapshot> documentSnapshots = query.get().getDocuments();
         List<Wordlist> wordlists = new ArrayList<>();
 
         for (DocumentSnapshot document : documentSnapshots) {
-            Wordlist wordlist = document.toObject(Wordlist.class);
-            wordlist.setWordlistId(document.getId());
-            wordlist.setUser(getUserByDocumentReference((DocumentReference) document.get("user")));
+            Wordlist wordlist = getWordlistFromSnapshot(document);
 
-            if (
-                    wordlist.getName().toLowerCase().contains(name.toLowerCase()) &&
-                    wordlist.getWords().stream().filter(w -> w.getWord().toLowerCase().contains(word.toLowerCase())).findFirst().orElse(null) != null
-            ) {
+            if (isMatchCriteria(wordlist, name, word))
                 wordlists.add(wordlist);
-            }
         }
         return wordlists;
     }
@@ -213,7 +206,6 @@ public class WordlistService {
         return writeResult.isDone();
     }
 
-    // TODO: need to optimize
     public boolean removeWordlistWord(String wordlistId, Integer wordId) throws ExecutionException, InterruptedException {
         firestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = firestore.collection("word_lists_ref").document(wordlistId);
