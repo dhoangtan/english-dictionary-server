@@ -7,7 +7,7 @@ import englishdictionary.server.errors.DuplicateWordlistException;
 import englishdictionary.server.errors.WordNotFoundException;
 import englishdictionary.server.errors.WordlistNotFoundException;
 import englishdictionary.server.models.Word;
-import englishdictionary.server.models.Wordlist;
+import englishdictionary.server.models.document_references.Wordlist;
 import englishdictionary.server.services.WordlistService;
 import englishdictionary.server.utils.ControllerUtilities;
 import jakarta.servlet.http.HttpServletRequest;
@@ -70,7 +70,7 @@ public class WordListController {
     }
 
     @GetMapping("/search")
-    public List<Wordlist> searchForWordList(@RequestParam(name = "name") String name, @RequestParam(name = "word") String word, HttpServletRequest request) {
+    public List<englishdictionary.server.models.document_references.Wordlist> searchForWordList(@RequestParam(name = "name") String name, @RequestParam(name = "word") String word, HttpServletRequest request) {
         try {
             String prompt = getFunctionCall("searchForWordlist", utilFuncs.getCurrentResourcePath(request));
             logger.info(prompt);
