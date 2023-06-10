@@ -1,4 +1,4 @@
-package englishdictionary.server.models.document_references;
+package englishdictionary.server.models;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

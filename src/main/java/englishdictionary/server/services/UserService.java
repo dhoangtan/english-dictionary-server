@@ -12,7 +12,7 @@ import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
 import englishdictionary.server.errors.UserDisableException;
 import englishdictionary.server.models.UserIn;
-import englishdictionary.server.models.document_references.User;
+import englishdictionary.server.models.User;
 import englishdictionary.server.models.UserAuth;
 import org.springframework.stereotype.Service;
 
@@ -292,7 +292,7 @@ public class UserService {
         DocumentReference userGender = dbfirestore.collection("levels").document(userIn.getGender().toString());
         DocumentReference userOccupation = dbfirestore.collection("levels").document(userIn.getOccupation().toString());
         UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
-        User newUserIn = new englishdictionary.server.models.document_references.User(userIn.getEmail(), userIn.getFullName(), userGender, userLevel, userOccupation, hashPassword(userIn.getPassword()));
+        User newUserIn = new User(userIn.getEmail(), userIn.getFullName(), userGender, userLevel, userOccupation, hashPassword(userIn.getPassword()));
         String uid = userRecord.getUid();
         userIn.setPassword(hashedPassword);
         DocumentReference userDocRef = getUserDocumentReferenceById(uid);

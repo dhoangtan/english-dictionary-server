@@ -7,7 +7,7 @@ import englishdictionary.server.errors.DuplicateWordlistException;
 import englishdictionary.server.errors.WordNotFoundException;
 import englishdictionary.server.errors.WordlistNotFoundException;
 import englishdictionary.server.models.Word;
-import englishdictionary.server.models.document_references.Wordlist;
+import englishdictionary.server.models.Wordlist;
 import englishdictionary.server.services.WordlistService;
 import englishdictionary.server.utils.ControllerUtilities;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,11 +39,11 @@ public class WordListController {
     }
 
     @GetMapping("/{user-id}")
-    public ResponseEntity<List<englishdictionary.server.models.document_references.Wordlist>> getAllUserWordLists(@PathVariable("user-id") String userId, HttpServletRequest request) {
+    public ResponseEntity<List<Wordlist>> getAllUserWordLists(@PathVariable("user-id") String userId, HttpServletRequest request) {
         try {
             String prompt = getFunctionCall("getAllUserWordLists", utilFuncs.getCurrentResourcePath(request));
             logger.info(prompt);
-            List<englishdictionary.server.models.document_references.Wordlist> wordLists = wordlistService.getAllUserWordListsRef(userId);
+            List<Wordlist> wordLists = wordlistService.getAllUserWordListsRef(userId);
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(wordLists, HttpStatus.OK);
         } catch (ExecutionException | InterruptedException | FirebaseAuthException e ) {
@@ -53,11 +53,11 @@ public class WordListController {
     }
 
     @GetMapping("/{user-id}/{wordlist-id}")
-    public ResponseEntity<englishdictionary.server.models.document_references.Wordlist> getUserWordlist(@PathVariable("user-id") String userId, @PathVariable("wordlist-id") String wordlistId, HttpServletRequest request) {
+    public ResponseEntity<Wordlist> getUserWordlist(@PathVariable("user-id") String userId, @PathVariable("wordlist-id") String wordlistId, HttpServletRequest request) {
         try {
             String prompt = getFunctionCall("getUserWordlist", utilFuncs.getCurrentResourcePath(request));
             logger.info(prompt);
-            englishdictionary.server.models.document_references.Wordlist wordlist = wordlistService.getWordlistByIdRef(wordlistId);
+            Wordlist wordlist = wordlistService.getWordlistByIdRef(wordlistId);
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(wordlist, HttpStatus.OK);
         } catch (WordlistNotFoundException wordlistNotFoundException) {
@@ -70,7 +70,7 @@ public class WordListController {
     }
 
     @GetMapping("/search")
-    public List<englishdictionary.server.models.document_references.Wordlist> searchForWordList(@RequestParam(name = "name") String name, @RequestParam(name = "word") String word, HttpServletRequest request) {
+    public List<Wordlist> searchForWordList(@RequestParam(name = "name") String name, @RequestParam(name = "word") String word, HttpServletRequest request) {
         try {
             String prompt = getFunctionCall("searchForWordlist", utilFuncs.getCurrentResourcePath(request));
             logger.info(prompt);
@@ -108,11 +108,11 @@ public class WordListController {
     }
 
     @PostMapping(value = "")
-    public ResponseEntity<englishdictionary.server.models.document_references.Wordlist> createWordlist(@RequestBody CreateWordListDto wordListDto, HttpServletRequest request) {
+    public ResponseEntity<Wordlist> createWordlist(@RequestBody CreateWordListDto wordListDto, HttpServletRequest request) {
         try {
             String prompt = getFunctionCall("createWordlist", utilFuncs.getCurrentResourcePath(request));
             logger.info(prompt);
-            englishdictionary.server.models.document_references.Wordlist wordlist = wordlistService.createWordlistRef(wordListDto.getName(), wordListDto.getUserId());
+            Wordlist wordlist = wordlistService.createWordlistRef(wordListDto.getName(), wordListDto.getUserId());
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(wordlist, HttpStatus.CREATED);
         } catch (DuplicateWordlistException duplicateWordlistException) {

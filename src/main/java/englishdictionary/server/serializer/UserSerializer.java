@@ -3,8 +3,7 @@ package englishdictionary.server.serializer;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.google.cloud.firestore.DocumentReference;
-import englishdictionary.server.models.document_references.User;
+import englishdictionary.server.models.User;
 
 import java.io.IOException;
 

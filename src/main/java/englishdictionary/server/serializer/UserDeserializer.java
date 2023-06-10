@@ -4,8 +4,7 @@ import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.google.cloud.firestore.DocumentReference;
-import englishdictionary.server.models.document_references.User;
+import englishdictionary.server.models.User;
 
 import java.io.IOException;
 

@@ -5,13 +5,12 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import com.google.cloud.firestore.DocumentReference;
 import englishdictionary.server.component.verificationCodeTask;
 import englishdictionary.server.errors.AuthorizationException;
 import englishdictionary.server.errors.UserDisableException;
 import englishdictionary.server.errors.UserNotFoundException;
 import englishdictionary.server.models.UserIn;
-import englishdictionary.server.models.document_references.User;
+import englishdictionary.server.models.User;
 import englishdictionary.server.utils.ControllerUtilities;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
