@@ -1,5 +1,6 @@
 package englishdictionary.server.gateways;
 
+import com.google.firebase.auth.FirebaseAuthException;
 import englishdictionary.server.dtos.AddWordDto;
 import englishdictionary.server.dtos.CreateWordListDto;
 import englishdictionary.server.errors.DuplicateWordlistException;
@@ -38,25 +39,25 @@ public class WordListController {
     }
 
     @GetMapping("/{user-id}")
-    public ResponseEntity<List<Wordlist>> getAllUserWordLists(@PathVariable("user-id") String userId, HttpServletRequest request) {
+    public ResponseEntity<List<englishdictionary.server.models.document_references.Wordlist>> getAllUserWordLists(@PathVariable("user-id") String userId, HttpServletRequest request) {
         try {
             String prompt = getFunctionCall("getAllUserWordLists", utilFuncs.getCurrentResourcePath(request));
             logger.info(prompt);
-            List<Wordlist> wordLists = wordlistService.getAllUserWordLists(userId);
+            List<englishdictionary.server.models.document_references.Wordlist> wordLists = wordlistService.getAllUserWordListsRef(userId);
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(wordLists, HttpStatus.OK);
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException | InterruptedException | FirebaseAuthException e ) {
             logger.error("Error when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/{user-id}/{wordlist-id}")
-    public ResponseEntity<Wordlist> getUserWordlist(@PathVariable("user-id") String userId, @PathVariable("wordlist-id") String wordlistId, HttpServletRequest request) {
+    public ResponseEntity<englishdictionary.server.models.document_references.Wordlist> getUserWordlist(@PathVariable("user-id") String userId, @PathVariable("wordlist-id") String wordlistId, HttpServletRequest request) {
         try {
             String prompt = getFunctionCall("getUserWordlist", utilFuncs.getCurrentResourcePath(request));
             logger.info(prompt);
-            Wordlist wordlist = wordlistService.getWordlistById(wordlistId);
+            englishdictionary.server.models.document_references.Wordlist wordlist = wordlistService.getWordlistByIdRef(wordlistId);
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(wordlist, HttpStatus.OK);
         } catch (WordlistNotFoundException wordlistNotFoundException) {
@@ -107,11 +108,11 @@ public class WordListController {
     }
 
     @PostMapping(value = "")
-    public ResponseEntity<Wordlist> createWordlist(@RequestBody CreateWordListDto wordListDto, HttpServletRequest request) {
+    public ResponseEntity<englishdictionary.server.models.document_references.Wordlist> createWordlist(@RequestBody CreateWordListDto wordListDto, HttpServletRequest request) {
         try {
             String prompt = getFunctionCall("createWordlist", utilFuncs.getCurrentResourcePath(request));
             logger.info(prompt);
-            Wordlist wordlist = wordlistService.createWordlist(wordListDto.getName(), wordListDto.getUserId());
+            englishdictionary.server.models.document_references.Wordlist wordlist = wordlistService.createWordlistRef(wordListDto.getName(), wordListDto.getUserId());
             logger.info(prompt + " - Completed");
             return new ResponseEntity<>(wordlist, HttpStatus.CREATED);
         } catch (DuplicateWordlistException duplicateWordlistException) {
@@ -120,7 +121,7 @@ public class WordListController {
         } catch (InvalidParameterException invalidParameterException) {
             logger.error("Error when creating resource " + utilFuncs.getCurrentResourcePath(request) + " - Invalid param value");
             throw invalidParameterException;
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException | InterruptedException | FirebaseAuthException e) {
             logger.error("Error when creating resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -197,24 +198,6 @@ public class WordListController {
             return HttpStatus.BAD_REQUEST;
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Error when adding resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-
-    @GetMapping("/testref/{wordlist-id}")
-    public ResponseEntity<englishdictionary.server.models.document_references.Wordlist> getUserWordlist(@PathVariable("wordlist-id") String wordlistId, HttpServletRequest request) {
-        try {
-            String prompt = getFunctionCall("getUserWordlist", utilFuncs.getCurrentResourcePath(request));
-            logger.info(prompt);
-            englishdictionary.server.models.document_references.Wordlist wordlist = wordlistService.getWordlistByIdRefTest(wordlistId);
-            logger.info(prompt + " - Completed");
-            return new ResponseEntity<>(wordlist, HttpStatus.OK);
-        } catch (WordlistNotFoundException wordlistNotFoundException) {
-            logger.error("Error occurred when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Not exists");
-            throw wordlistNotFoundException;
-        } catch (ExecutionException | InterruptedException e) {
-            logger.error("Error when getting resource " + utilFuncs.getCurrentResourcePath(request) + " - Execution failed with message [" + e.getMessage() + "]");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

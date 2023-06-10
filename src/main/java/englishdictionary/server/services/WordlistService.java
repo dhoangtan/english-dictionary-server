@@ -4,10 +4,12 @@ import java.security.InvalidParameterException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
+import com.google.firebase.auth.FirebaseAuthException;
 import englishdictionary.server.errors.DuplicateWordlistException;
 import englishdictionary.server.errors.WordNotFoundException;
 import englishdictionary.server.errors.WordlistNotFoundException;
 import englishdictionary.server.models.document_references.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.api.core.ApiFuture;
@@ -26,6 +28,59 @@ import englishdictionary.server.models.Wordlist;
 public class WordlistService {
     private Firestore firestore;
 
+    @Autowired
+    private UserService userService;
+
+    // Wordlist query migration
+
+    public englishdictionary.server.models.document_references.Wordlist getWordlistByIdRef(String wordListId) throws ExecutionException, InterruptedException {
+        firestore = FirestoreClient.getFirestore();
+        DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordListId).get().get();
+        englishdictionary.server.models.document_references.Wordlist wordlist = new englishdictionary.server.models.document_references.Wordlist();
+
+        wordlist.setName(documentSnapshot.getString("name"));
+        wordlist.setWordlistId(documentSnapshot.getId());
+        wordlist.setWords((List<Word>) documentSnapshot.get("words"));
+        DocumentReference userRef = (DocumentReference) documentSnapshot.get("user");
+        System.out.println(userRef.getPath());
+        User user = userRef.get().get().toObject(User.class);
+
+        wordlist.setUser(user);
+
+        if (wordlist == null)
+            throw new WordlistNotFoundException(wordListId);
+
+        wordlist.setWordlistId(wordListId);
+        return wordlist;
+    }
+
+    public List<englishdictionary.server.models.document_references.Wordlist> getAllUserWordListsRef(String userId) throws ExecutionException, InterruptedException, FirebaseAuthException {
+        firestore = FirestoreClient.getFirestore();
+        ApiFuture<QuerySnapshot> future = firestore.collection("word_lists_ref").get(); // TODO: Remove ref after complete feature
+        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+        List<englishdictionary.server.models.document_references.Wordlist> wordlists = new ArrayList<>();
+        for (DocumentSnapshot document : documents) {
+
+            DocumentReference userRef = (DocumentReference) document.get("user");
+            System.out.println(userRef.getPath());
+            User user = userRef.get().get().toObject(User.class);
+
+            if (!userService.getUserId(user.getEmail()).equals(userId))
+                continue;
+
+            englishdictionary.server.models.document_references.Wordlist wordlist = new englishdictionary.server.models.document_references.Wordlist();
+            wordlist.setName(document.getString("name"));
+            wordlist.setWordlistId(document.getId());
+            wordlist.setWords((List<Word>) document.get("words"));
+            wordlists.add(wordlist);
+
+
+            wordlist.setUser(user);
+        }
+
+        return wordlists;
+    }
+
     public List<Wordlist> getAllUserWordLists(String userId) throws ExecutionException, InterruptedException {
         firestore = FirestoreClient.getFirestore();
         ApiFuture<QuerySnapshot> future = firestore.collection("word_lists").whereEqualTo("userId", userId).get();
@@ -43,39 +98,32 @@ public class WordlistService {
         return wordlists;
     }
 
-    public Wordlist getWordlistById(String wordListId) throws ExecutionException, InterruptedException {
-        firestore = FirestoreClient.getFirestore();
-        DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordListId).get().get();
-        Wordlist wordlist = documentSnapshot.toObject(Wordlist.class);
-        if (wordlist == null)
-            throw new WordlistNotFoundException(wordListId);
-
-        wordlist.setWordlistId(wordListId);
-        return wordlist;
-    }
-
-    public Wordlist createWordlist(String wordlistName, String userId) throws ExecutionException, InterruptedException {
+    public englishdictionary.server.models.document_references.Wordlist createWordlistRef(String wordlistName, String userId) throws ExecutionException, InterruptedException, FirebaseAuthException {
         if (wordlistName == null)
             throw new InvalidParameterException("Wordlist name cannot be null");
 
         firestore = FirestoreClient.getFirestore();
 
-        List<Wordlist> wordlists = getAllUserWordLists(userId);
-        for(Wordlist wordlist : wordlists)
+        List<englishdictionary.server.models.document_references.Wordlist> wordlists = getAllUserWordListsRef(userId);
+        for(englishdictionary.server.models.document_references.Wordlist wordlist : wordlists)
             if (Objects.equals(wordlist.getName(), wordlistName))
                 throw new DuplicateWordlistException(wordlistName);
 
-        Wordlist wordlist = new Wordlist();
+
+        DocumentReference userRef = userService.getUserDocumentReferenceById(userId);
+
+        englishdictionary.server.models.document_references.Wordlist wordlist = new englishdictionary.server.models.document_references.Wordlist();
+
         wordlist.setName(wordlistName);
-        wordlist.setUserId(userId);
+        wordlist.setUser(userRef.get().get().toObject(User.class));
         wordlist.setWords(new ArrayList<>());
 
         Map<String, Object> docData = new HashMap<>();
         docData.put("name", wordlist.getName());
-        docData.put("userId", wordlist.getUserId());
+        docData.put("user", userRef);
         docData.put("words", wordlist.getWords());
 
-        firestore.collection("word_lists").document().set(docData);
+        firestore.collection("word_lists").document().set(docData).get();
         return wordlist;
     }
 
@@ -194,28 +242,6 @@ public class WordlistService {
         documentReference.update(wordlist.toHashMap());
 
         return true;
-    }
-
-
-    public englishdictionary.server.models.document_references.Wordlist getWordlistByIdRefTest(String wordListId) throws ExecutionException, InterruptedException {
-        firestore = FirestoreClient.getFirestore();
-        DocumentSnapshot documentSnapshot = firestore.collection("word_lists").document(wordListId).get().get();
-        englishdictionary.server.models.document_references.Wordlist wordlist = new englishdictionary.server.models.document_references.Wordlist();
-
-        wordlist.setName(documentSnapshot.getString("name"));
-        wordlist.setWordlistId(documentSnapshot.getId());
-        wordlist.setWords((List<Word>) documentSnapshot.get("words"));
-        DocumentReference userRef = (DocumentReference) documentSnapshot.get("user");
-        System.out.println(userRef.getPath());
-        User user = userRef.get().get().toObject(User.class);
-
-        wordlist.setUser(user);
-
-        if (wordlist == null)
-            throw new WordlistNotFoundException(wordListId);
-
-        wordlist.setWordlistId(wordListId);
-        return wordlist;
     }
 
 }

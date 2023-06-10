@@ -119,6 +119,20 @@ public class UserService {
         throw new AuthorizationException();
     }
 
+    public String getUserId(String email) throws FirebaseAuthException, ExecutionException, InterruptedException, AuthorizationException, UserDisableException {
+        UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(email);
+        if (userRecord == null)
+            throw new AuthorizationException();
+        String uid = userRecord.getUid();
+        dbfirestore = FirestoreClient.getFirestore();
+
+        return uid;
+    }
+
+    public DocumentReference getUserDocumentReferenceById(String userId) throws ExecutionException, InterruptedException {
+        return FirestoreClient.getFirestore().collection("users").document(userId);
+    }
+
     public String getUserEmail(String userId) throws ExecutionException, InterruptedException, UserNotFoundException {
         User userIn = getUser(userId);
         if (userIn == null) {
@@ -278,10 +292,10 @@ public class UserService {
         DocumentReference userGender = dbfirestore.collection("levels").document(userIn.getGender().toString());
         DocumentReference userOccupation = dbfirestore.collection("levels").document(userIn.getOccupation().toString());
         UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
-        User newUserIn = new englishdictionary.server.models.document_references.User(userIn.getEmail(), userIn.getFullName(), userGender, userLevel, userOccupation, userIn.getPassword());
+        User newUserIn = new englishdictionary.server.models.document_references.User(userIn.getEmail(), userIn.getFullName(), userGender, userLevel, userOccupation, hashPassword(userIn.getPassword()));
         String uid = userRecord.getUid();
         userIn.setPassword(hashedPassword);
-        DocumentReference userDocRef = dbFirestore.collection("users").document(uid);
+        DocumentReference userDocRef = getUserDocumentReferenceById(uid);
         ApiFuture<WriteResult> writeResult = userDocRef.set(newUserIn);
         writeResult.get();
 
