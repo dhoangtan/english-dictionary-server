@@ -84,7 +84,10 @@ public class verificationCodeTask{
             System.err.println("Error deleting code for [" + e.getMessage()+"]");
         }
     }
-    public void sendCodeToEmail(String userEmail) throws MessagingException, UnsupportedEncodingException, InterruptedException {
+    public boolean sendCodeToEmail(String userEmail) throws MessagingException, UnsupportedEncodingException, InterruptedException {
+        UserService userService = new UserService();
+        if (!userService.isUserExist(userEmail))
+            return false;
         String code = verificationCodeFactory();
         String subject = "This is your authorized code. Do not share !!!!!";
         String message = "<html><body><h1>"+code+"</h1><p>This code only valid for 2 minutes.<p></body></html>";
@@ -100,6 +103,7 @@ public class verificationCodeTask{
 
         emailSender.send(mimeMessage);
         scheduleDocumentDeletion(userEmail);
+        return true;
     }
 
     public Boolean checkCode(String email, String code) throws ExecutionException, InterruptedException {

@@ -207,8 +207,9 @@ public class UserController {
     public ResponseEntity<String> sendCode(@RequestBody String email) {
         try{
             System.out.println(email);
-            verificationCodeTask.sendCodeToEmail(email);
-            return ResponseEntity.status(HttpStatus.OK).body("Verification code sent.");
+            if(verificationCodeTask.sendCodeToEmail(email))
+                return ResponseEntity.status(HttpStatus.OK).body("Verification code sent.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
         catch(MessagingException | UnsupportedEncodingException e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
