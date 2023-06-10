@@ -182,7 +182,7 @@ public class WordlistService {
         return writeResult.isDone();
     }
 
-    // TODO implement
+    // TODO: need to optimize
     public boolean removeWordlistWord(String wordlistId, Integer wordId) throws ExecutionException, InterruptedException {
         firestore = FirestoreClient.getFirestore();
         DocumentReference documentReference = firestore.collection("word_lists_ref").document(wordlistId);
@@ -193,17 +193,24 @@ public class WordlistService {
         wordlist.setWordlistId(document.getId());
         wordlist.setName(document.getString("name"));
         wordlist.setUser(getUserByDocumentReference((DocumentReference) document.get("user")));
-        List<Word> words = (List<Word>) document.get("words");
-        wordlist.setWords(words);
 
-        for (Word w : wordlist.getWords()) {
-            System.out.println(w.getWord());
+        List<HashMap<String, Object>> listHashMappu = (List<HashMap<String, Object>>) document.get("words");
+        List<Word> words = new ArrayList<>();
+
+        for (HashMap<String, Object> h : listHashMappu) {
+            Word word = new Word();
+            word.setId(Integer.parseInt(h.get("id").toString()));
+            word.setWord(h.get("word").toString());
+            word.setDefinition(h.get("definition").toString());
+            words.add(word);
         }
+
+        wordlist.setWords(words);
 
         if (wordlist == null)
             throw new WordlistNotFoundException(wordlistId);
 
-        wordlist.getWords().removeIf(word -> word.getId().equals(wordId));
+        wordlist.getWords().removeIf(word -> word.getId() == wordId);
 
         Map<String, Object> map = wordlist.toHashMap();
         ApiFuture<WriteResult> updateResult = documentReference.update(map);
@@ -229,15 +236,27 @@ public class WordlistService {
         DocumentReference documentReference = firestore.collection("word_lists").document(wordlistId);
         DocumentSnapshot document = documentReference.get().get();
 
-        Wordlist wordlist = document.toObject(Wordlist.class);
+        englishdictionary.server.models.document_references.Wordlist wordlist = new englishdictionary.server.models.document_references.Wordlist();
+
+        wordlist.setWordlistId(document.getId());
+        wordlist.setName(document.getString("name"));
+        wordlist.setUser(getUserByDocumentReference((DocumentReference) document.get("user")));
+
+        List<HashMap<String, Object>> listHashMappu = (List<HashMap<String, Object>>) document.get("words");
+        List<Word> words = new ArrayList<>();
+
+        for (HashMap<String, Object> h : listHashMappu) {
+            Word w = new Word();
+            w.setId(Integer.parseInt(h.get("id").toString()));
+            w.setWord(h.get("word").toString());
+            w.setDefinition(h.get("definition").toString());
+            words.add(w);
+        }
+
+        wordlist.setWords(words);
 
         if (wordlist == null)
             throw new WordlistNotFoundException(wordlistId);
-
-        wordlist.setWordlistId(document.getId());
-        // NOTE: somehow userId cannot be parsed
-        //      manually set userId is required.
-        wordlist.setUserId(document.get("userId").toString());
 
         // prevent adding the same word multiple times
         if (wordlist.getWords()
