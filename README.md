@@ -12,6 +12,5 @@ Step two: run the docker image
 ```shell
 docker-compose up
 ```
-Return to Step One
-=======
+---
 
